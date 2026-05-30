@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mandelbrot 複素 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The Mandelbrot set — z ← z² + c, escape-time colored, with an endless auto-zoom into the infinitely detailed boundary." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">escaping to infinity</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">The <em>Mandelbrot</em> Set</div>
+      <div class="s">33 · 複素 z ← z² + c</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>複素 · escape-time</h3>
+    <div class="field">
+      <label>zoom target <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="targets"></div>
+    </div>
+    <div class="field">
+      <label for="iter">iterations <span class="val" data-val="iter"></span></label>
+      <input type="range" id="iter" min="80" max="800" step="20" value="220" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="auto">auto-zoom</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Black = points that stay bounded (in the set). Colors = how fast the rest escape. The boundary has infinite detail at every scale.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="tname">seahorse</b> · <b id="zoom">1×</b></div>
+    <div>↑↓ target</div>
+  </div>
+
+  <div class="hint">drag <b>pan</b> · scroll <b>zoom</b> · ↑↓ <b>target</b> · auto-dives forever · press <b>R</b></div>
+  <script type="module" src="../src/mandelbrot.js"></script>
+</body>
+</html>

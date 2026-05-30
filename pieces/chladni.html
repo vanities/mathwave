@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chladni Plate 波形 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Chladni plates / cymatics — sand on a vibrating plate collects along the nodal lines of a standing wave. The geometry of resonance." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">tuning the plate</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Chladni <em>Plate</em></div>
+      <div class="s">30 · 波形 cymatics · standing waves</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>波形 · cos nπx cos mπy − …</h3>
+    <div class="field">
+      <label>mode (m,n) <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="modes"></div>
+    </div>
+    <div class="field">
+      <label for="amp">amplitude <span class="val" data-val="amp"></span></label>
+      <input type="range" id="amp" min="0.2" max="2" step="0.05" value="1" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="shake">re-sprinkle sand</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Sand flees the shaking <b>antinodes</b> and piles on the still <b>nodal lines</b> (where s≈0). Higher modes → more intricate figures.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="mode">m=2 n=3</b></div>
+    <div>↑↓ mode</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>mode</b> · sand finds the nodes · press <b>R</b> to record</div>
+  <script type="module" src="../src/chladni.js"></script>
+</body>
+</html>
