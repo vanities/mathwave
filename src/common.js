@@ -174,6 +174,8 @@ const ROOMS = [
   "pendulum.html", "diffusion.html", "superposition.html",
   "boids.html", "epicycles.html", "hopf.html",
   "bloch.html", "wolfram.html", "physarum.html",
+  "chladni.html", "kuramoto.html", "newton.html", "mandelbrot.html",
+  "blackhole.html", "phyllotaxis.html", "dla.html",
 ];
 
 // ============================================================
