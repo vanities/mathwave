@@ -75,12 +75,12 @@ function paint() {
 function magnetization() { let s = 0; for (let i = 0; i < L * L; i++) s += spin[i]; return s / (L * L); }
 
 // ---------- panel ----------
-bindRange("temp", (v) => { T = v; rebuildExp(); tEl.textContent = v.toFixed(2); phaseEl.textContent = v < TC ? "ferromagnetic" : "paramagnetic"; }, (v) => v.toFixed(2));
-let sweepsPerFrame = 6;
-bindRange("rate", (v) => { sweepsPerFrame = Math.round(v); }, (v) => `${Math.round(v)}×`);
 const tEl = document.getElementById("tval");
 const phaseEl = document.getElementById("phase");
 const magEl = document.getElementById("mag");
+bindRange("temp", (v) => { T = v; rebuildExp(); tEl.textContent = v.toFixed(2); phaseEl.textContent = v < TC ? "ferromagnetic" : "paramagnetic"; }, (v) => v.toFixed(2));
+let sweepsPerFrame = 6;
+bindRange("rate", (v) => { sweepsPerFrame = Math.round(v); }, (v) => `${Math.round(v)}×`);
 
 let playing = !reducedMotion;
 const playBtn = document.getElementById("play");

@@ -49,6 +49,7 @@ function makeLabel(text, color = "#f6e9ff", glow = "#2be4ff", scale = 1) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
   sp.scale.set(1.1 * scale, 0.55 * scale, 1); return sp;
 }
+const at = (sp, p) => { sp.position.copy(p); return sp; };  // position is a read-only ref
 const clearGroup = (gr) => { while (gr.children.length) { const c = gr.children.pop(); c.geometry && c.geometry.dispose(); c.material && c.material.dispose && c.material.dispose(); gr.remove(c); } };
 
 let nodeMeshes = [], nodeLabels = [];
@@ -85,7 +86,7 @@ function build() {
     const cc = [0x2be4ff, 0xff2e97, 0x62ffb3][fi % 3];
     freqGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: cc, transparent: true, opacity: 0.3 })));
     for (let k = 0; k < P; k++) { const a = (2 * Math.PI * w * k) / P; const d = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ color: cc, transparent: true, opacity: 0.5 })); d.position.set(Math.cos(a) * r, Math.sin(a) * r, z); freqGroup.add(d); }
-    freqGroup.add(Object.assign(makeLabel("ω=" + w, "#c0a3e8", "#b06bff", 1.4), { position: new THREE.Vector3(0, r + 0.8, z) }));
+    freqGroup.add(at(makeLabel("ω=" + w, "#c0a3e8", "#b06bff", 1.4), new THREE.Vector3(0, r + 0.8, z)));
   });
 
   if (pEl) pEl.textContent = P;
@@ -100,8 +101,8 @@ function setArm(line, k, frac = 1) {
 // ---------- panel ----------
 const pEl = document.getElementById("pval");
 const eqEl = document.getElementById("eq");
-bindRange("speed", (v) => { speed = v; }, (v) => v.toFixed(2) + "×");
 let speed = 1;
+bindRange("speed", (v) => { speed = v; }, (v) => v.toFixed(2) + "×");
 const PRIMES = [7, 11, 13, 17, 23];
 bindRange("mod", (v) => { P = PRIMES[Math.round(v)]; build(); }, (v) => `${PRIMES[Math.round(v)]}`);
 setVariantCycler((d) => { const i = Math.max(0, PRIMES.indexOf(P)); const ni = (i + d + PRIMES.length) % PRIMES.length; P = PRIMES[ni]; const el = document.getElementById("mod"); el.value = ni; build(); return "p = " + P; });

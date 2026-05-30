@@ -61,6 +61,7 @@ function makeLabel(text, color = "#f6e9ff", glow = "#2be4ff", s = 1) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
   sp.scale.set(2.6 * s, 0.66 * s, 1); return sp;
 }
+const at = (sp, p) => { sp.position.copy(p); return sp; };  // position is a read-only ref
 const clearGroup = (gr) => { while (gr.children.length) { const c = gr.children.pop(); c.geometry && c.geometry.dispose(); c.material && c.material.dispose && c.material.dispose(); gr.remove(c); } };
 
 const cloud = new THREE.Group(); scene.add(cloud);
@@ -96,7 +97,7 @@ function showAnalogy(i) {
   for (const w of [A, B, C]) { const h = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 })); h.position.copy(V(w)); overlay.add(h); }
   // result marker + nearest-word readout
   const rm = new THREE.Mesh(new THREE.SphereGeometry(0.32, 18, 14), new THREE.MeshBasicMaterial({ color: 0xffffff })); rm.position.copy(result); overlay.add(rm);
-  overlay.add(Object.assign(makeLabel("= " + expect, "#ffd166", "#ff9f5a", 1.1), { position: result.clone().add(new THREE.Vector3(0, 0.7, 0)) }));
+  overlay.add(at(makeLabel("= " + expect, "#ffd166", "#ff9f5a", 1.1), result.clone().add(new THREE.Vector3(0, 0.7, 0))));
   // nearest neighbor (proof it lands on the right word)
   let best = "", bd = 1e9;
   for (const w of Object.keys(WORDS)) { const d = V(w).distanceTo(result); if (d < bd) { bd = d; best = w; } }

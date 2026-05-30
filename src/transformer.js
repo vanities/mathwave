@@ -163,6 +163,8 @@ function makeLabel(text, color = "#f6e9ff", glow = "#2be4ff") {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
   sp.scale.set(2.8, 0.7, 1); return sp;
 }
+// place a sprite: Object3D.position/scale are read-only refs, so copy (can't Object.assign)
+const at = (sp, p, s) => { sp.position.copy(p); if (s) sp.scale.copy(s); return sp; };
 
 // token nodes + columns through the layers
 function buildScaffold() {
@@ -170,7 +172,7 @@ function buildScaffold() {
   for (let i = 0; i < T; i++) {
     const node = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 14), new THREE.MeshStandardMaterial({ color: 0x2be4ff, emissive: 0x0b3a44, roughness: 0.3 }));
     node.position.set(xOf(i), 1, 0); nodeGroup.add(node);
-    nodeGroup.add(Object.assign(makeLabel(TOKENS[i]), { position: new THREE.Vector3(xOf(i), 0.1, 0) }));
+    nodeGroup.add(at(makeLabel(TOKENS[i]), new THREE.Vector3(xOf(i), 0.1, 0)));
     const col = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(xOf(i), 1, 0), new THREE.Vector3(xOf(i), yOfLayer(LAYERS - 1), 0)]);
     nodeGroup.add(new THREE.Line(col, new THREE.LineBasicMaterial({ color: 0x4a1f7a, transparent: true, opacity: 0.45 })));
   }
@@ -207,7 +209,7 @@ function buildHeatmap() {
     hmMesh.setMatrixAt(i * T + j, d.matrix);
   }
   HM.add(hmMesh);
-  HM.add(Object.assign(makeLabel("attention  AᵢⱼL", "#2be4ff", "#2be4ff"), { position: new THREE.Vector3(0, (T / 2) * CELLW + 0.7, 0), scale: new THREE.Vector3(4.2, 1.0, 1) }));
+  HM.add(at(makeLabel("attention  AᵢⱼL", "#2be4ff", "#2be4ff"), new THREE.Vector3(0, (T / 2) * CELLW + 0.7, 0), new THREE.Vector3(4.2, 1.0, 1)));
 }
 const hmColor = new THREE.Color();
 function paintHeatmap(L, head) {
@@ -233,7 +235,7 @@ function topBasis(rows) {                  // crude: pick 3 most-spread coordina
 function buildResidual() {
   clearGroup(RS); dots = [];
   for (let i = 0; i < T; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshStandardMaterial({ color: 0x62ffb3, emissive: 0x163c2c, roughness: 0.4 })); RS.add(m); dots.push(m); }
-  RS.add(Object.assign(makeLabel("residual stream", "#62ffb3", "#62ffb3"), { position: new THREE.Vector3(0, 4.2, 0), scale: new THREE.Vector3(4.6, 1.0, 1) }));
+  RS.add(at(makeLabel("residual stream", "#62ffb3", "#62ffb3"), new THREE.Vector3(0, 4.2, 0), new THREE.Vector3(4.6, 1.0, 1)));
   basis = topBasis(hiddenByLayer[LAYERS - 1]);
   const a = new THREE.Vector3(refusal[basis.idx[0]], refusal[basis.idx[1]], refusal[basis.idx[2]]).normalize().multiplyScalar(3.4);
   const lg = new THREE.BufferGeometry().setFromPoints([a.clone().negate(), a]);
