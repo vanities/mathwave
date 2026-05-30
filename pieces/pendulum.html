@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Double Pendulum 振り子 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The double pendulum — deterministic chaos. Many near-identical pendulums diverge: the butterfly effect, integrated with exact RK4 equations of motion." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">winding the chaos</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Double <em>Pendulum</em></div>
+      <div class="s">21 · 振り子 deterministic chaos</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>振り子 · butterfly effect</h3>
+    <div class="field">
+      <label for="count">pendulums <span class="val" data-val="count"></span> <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <input type="range" id="count" min="1" max="160" step="1" value="24" />
+    </div>
+    <div class="field">
+      <label for="speed">time speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="reset">restart</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        All start within <b>0.0001 rad</b> of each other. They track together… then chaos amplifies the gap and the rainbow explodes apart.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="nb">24</b> pendulums</div>
+    <div>↑↓ count</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>count</b> · watch them <b>diverge</b> · press <b>R</b> to record</div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/pendulum.js"></script>
+</body>
+</html>

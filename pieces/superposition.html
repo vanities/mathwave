@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Superposition 重ね合わせ — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Anthropic's Toy Models of Superposition — features packed into fewer dimensions snap into polytopes (pentagon, antipodal pairs). Elhage et al. 2022." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">packing features</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Superposition <em>重ね合わせ</em></div>
+      <div class="s">23 · features as polytopes</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>重ね合わせ · n &gt; m features</h3>
+    <div class="field">
+      <label>features <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="counts"></div>
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset view</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        A 2D space storing n features packs them as a regular <b>n-gon</b> — antipodal pair, triangle, square, <b>pentagon</b>… The <b>WWᵀ</b> grid shows the interference between them.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="nfeat">5</b> features · <b id="shapename">pentagon</b></div>
+    <div>↑↓ count</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>feature count</b> · watch the <b>polytope</b> change · press <b>R</b></div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/superposition.js"></script>
+</body>
+</html>
