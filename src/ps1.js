@@ -32,7 +32,7 @@ function bayerTexture() {
   return tex;
 }
 
-export function makePS1Pipeline(renderer, scene, camera, { scale = 4, levels = 32 } = {}) {
+export function makePS1Pipeline(renderer, scene, camera, { scale = 4, levels = 32, srgb = true } = {}) {
   const sizeFor = () => [
     Math.max(1, Math.floor(window.innerWidth / scale)),
     Math.max(1, Math.floor(window.innerHeight / scale)),
@@ -64,9 +64,7 @@ export function makePS1Pipeline(renderer, scene, camera, { scale = 4, levels = 3
       void main(){
         vec3 c = texture2D(tDiffuse, vUv).rgb;
         c = clamp(c, 0.0, 1.0);
-        c = pow(c, vec3(0.4545));                 // linear → sRGB: the RT is linear-light, and a
-                                                  // raw ShaderMaterial skips Three's output encoding.
-                                                  // Without this, green/blue crush and everything reads red.
+        ${srgb ? "c = pow(c, vec3(0.4545));   // linear → sRGB (Three skips output encoding for raw ShaderMaterial; skip this when the source shader already outputs display colour)" : "// (srgb:false) source already outputs display colour — no extra gamma"}
         vec2 tp = floor(vUv * uLow);              // low-res texel coordinate
         float b = texture2D(tBayer, tp / 4.0).r;  // ordered-dither threshold, tiles every 4
         c += (b - 0.5) / uLevels;                 // Bayer dither in display space

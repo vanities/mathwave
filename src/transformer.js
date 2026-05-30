@@ -161,14 +161,14 @@ function ablate(H) {
 }
 function buildCubes() {
   const stages = [embed, ...hiddenByLayer.map(ablate)];   // 7 slabs
-  // z-score values across ALL stages so the cube ramp spans the real data range.
-  // (the residual stream skews positive → without this nearly every cube reads pink)
-  let _mu = 0, _cnt = 0;
-  for (const M of stages) for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) { _mu += M[i][c]; _cnt++; }
-  _mu /= _cnt || 1;
-  let _sd = 0;
-  for (const M of stages) for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) { const d = M[i][c] - _mu; _sd += d * d; }
-  _sd = Math.sqrt(_sd / (_cnt || 1)) || 1;
+  // RANK-normalise across ALL stages → colour ramp spread uniformly (z-scoring left
+  // everything pink; the distribution is too skewed). Each cube is coloured by its
+  // percentile, so the slabs are a guaranteed cyan→green→amber→pink rainbow.
+  const _sorted = [];
+  for (const M of stages) for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) _sorted.push(M[i][c]);
+  _sorted.sort((a, b) => a - b);
+  const _N = _sorted.length;
+  const rankOf = (v) => { let lo = 0, hi = _N; while (lo < hi) { const m = (lo + hi) >> 1; if (_sorted[m] < v) lo = m + 1; else hi = m; } return _N > 1 ? lo / (_N - 1) : 0.5; };
   const count = stages.length * T * Dm;
   if (cubeMesh) { scene.remove(cubeMesh); cubeMesh.dispose(); }
   cubeMesh = new THREE.InstancedMesh(cubeGeo, cubeMat, count);
@@ -179,7 +179,7 @@ function buildCubes() {
     for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) {
       dummy.position.set(x, CY + yOfTok(i), zOfCh(c)); dummy.updateMatrix();
       cubeMesh.setMatrixAt(n, dummy.matrix);
-      col.copy(ps1col(vnorm((M[i][c] - _mu) / _sd))); cubeMesh.setColorAt(n, col);
+      col.copy(ps1col(rankOf(M[i][c]))); cubeMesh.setColorAt(n, col);
       n++;
     }
   }
