@@ -63,9 +63,13 @@ export function makePS1Pipeline(renderer, scene, camera, { scale = 4, levels = 3
       varying vec2 vUv;
       void main(){
         vec3 c = texture2D(tDiffuse, vUv).rgb;
+        c = clamp(c, 0.0, 1.0);
+        c = pow(c, vec3(0.4545));                 // linear → sRGB: the RT is linear-light, and a
+                                                  // raw ShaderMaterial skips Three's output encoding.
+                                                  // Without this, green/blue crush and everything reads red.
         vec2 tp = floor(vUv * uLow);              // low-res texel coordinate
         float b = texture2D(tBayer, tp / 4.0).r;  // ordered-dither threshold, tiles every 4
-        c += (b - 0.5) / uLevels;                 // apply Bayer dither
+        c += (b - 0.5) / uLevels;                 // Bayer dither in display space
         c = floor(c * uLevels) / uLevels;         // crunch to ~15-bit color
         gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
       }

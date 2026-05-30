@@ -144,7 +144,7 @@ const cubeGeo = new THREE.BoxGeometry(CW * 0.92, CW * 0.92, CW * 0.92);
 const cubeMat = ps1ify(new THREE.MeshBasicMaterial({ vertexColors: true }), { snap: 240 });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
-const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);
+const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.7);   // v is a z-score → spreads cyan→pink evenly
 // bright PS1 value→color (cyan→green→amber→pink); the quantizer crunches it into bands
 const PS1_STOPS = [new THREE.Color(0x14e0ff), new THREE.Color(0x57ff9b), new THREE.Color(0xffe24d), new THREE.Color(0xff5d8f)];
 const _ps1c = new THREE.Color();
@@ -155,6 +155,14 @@ function ablate(H) {
 }
 function buildCubes() {
   const stages = [embed, ...hiddenByLayer.map(ablate)];   // 7 slabs
+  // z-score values across ALL stages so the cube ramp spans the real data range.
+  // (the residual stream skews positive → without this nearly every cube reads pink)
+  let _mu = 0, _cnt = 0;
+  for (const M of stages) for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) { _mu += M[i][c]; _cnt++; }
+  _mu /= _cnt || 1;
+  let _sd = 0;
+  for (const M of stages) for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) { const d = M[i][c] - _mu; _sd += d * d; }
+  _sd = Math.sqrt(_sd / (_cnt || 1)) || 1;
   const count = stages.length * T * Dm;
   if (cubeMesh) { scene.remove(cubeMesh); cubeMesh.dispose(); }
   cubeMesh = new THREE.InstancedMesh(cubeGeo, cubeMat, count);
@@ -165,7 +173,7 @@ function buildCubes() {
     for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) {
       dummy.position.set(x, CY + yOfTok(i), zOfCh(c)); dummy.updateMatrix();
       cubeMesh.setMatrixAt(n, dummy.matrix);
-      col.copy(ps1col(vnorm(M[i][c]))); cubeMesh.setColorAt(n, col);
+      col.copy(ps1col(vnorm((M[i][c] - _mu) / _sd))); cubeMesh.setColorAt(n, col);
       n++;
     }
   }
