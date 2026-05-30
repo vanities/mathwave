@@ -176,7 +176,7 @@ const ROOMS = [
   "bloch.html", "wolfram.html", "physarum.html",
   "chladni.html", "kuramoto.html", "newton.html", "mandelbrot.html",
   "blackhole.html", "phyllotaxis.html", "dla.html",
-  "attractorsong.html",
+  "attractorsong.html", "gpuflow.html",
 ];
 
 // ============================================================

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GPU Flow 流体 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="A million particles simulated entirely on the GPU — advected through curl-noise, vortex, Lorenz and galaxy flow fields at 60fps. Bigger and faster." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">spawning a million particles</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">GPU <em>Flow</em></div>
+      <div class="s">38 · 流体 a million particles</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>流体 · GPGPU on textures</h3>
+    <div class="field">
+      <label>field <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="fields"></div>
+    </div>
+    <div class="field">
+      <label for="size">particles <span class="val" data-val="size"></span></label>
+      <input type="range" id="size" min="0" max="3" step="1" value="3" />
+    </div>
+    <div class="field">
+      <label for="speed">flow speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label for="psize">point size <span class="val" data-val="psize"></span></label>
+      <input type="range" id="psize" min="0.5" max="4" step="0.1" value="1.0" />
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Every particle's position lives in a <b>texture</b>; a shader advances all of them in parallel — so a <b>million</b> flow at 60fps. The slower CPU rooms could graduate to this engine.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="count">1,048,576</b> · <b id="fieldname">curl smoke</b></div>
+    <div>↑↓ field</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>field</b> · push <b>particles</b> to 1M · press <b>R</b> to record</div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/gpuflow.js?v=2"></script>
+</body>
+</html>
