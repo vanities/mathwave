@@ -290,6 +290,7 @@ window.addEventListener("load", () => {
     "vectorfield.html", "gradient.html", "life.html", "reaction.html",
     "flatland.html", "sorting.html", "sorting3d.html", "eversion.html",
     "earthbound.html", "pixelsort.html", "transformer.html",
+    "orbitals.html", "nbody.html", "ising.html",
   ];
   const curFile = location.pathname.split("/").pop();
   const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };

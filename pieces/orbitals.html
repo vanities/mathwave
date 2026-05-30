@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic Orbitals 軌道 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Atomic orbitals from real spherical harmonics Y_l^m — s, p, d, f lobes colored by wavefunction phase. Physics meets chemistry." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">solving schrödinger</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Atomic <em>Orbitals</em></div>
+      <div class="s">16 · 軌道 spherical harmonics Yₗᵐ</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>軌道 · Yₗᵐ(θ,φ)</h3>
+    <div class="field">
+      <label>orbital <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="orbs"></div>
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset view</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Radius = |Yₗᵐ|, the angular probability lobe. <span style="color:#2be4ff">■</span> positive phase, <span style="color:#ff2e97">■</span> negative — the real wavefunction sign.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="orbname">2p_z</b></div>
+    <div>↑↓ orbital</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>s → p → d → f</b> · phase by color · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/orbitals.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ising Model 磁性 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The 2D Ising model — spins at temperature T via Metropolis Monte Carlo. Drag T through the Curie point and watch the magnetic phase transition." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">heating the lattice</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Ising <em>Model</em></div>
+      <div class="s">18 · 磁性 spin lattice · Metropolis</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>磁性 · e^(−ΔE/T)</h3>
+    <div class="field">
+      <label for="temp">temperature T <span class="val" data-val="temp"></span></label>
+      <input type="range" id="temp" min="0.4" max="4" step="0.02" value="2.0" />
+    </div>
+    <div class="field">
+      <label for="rate">sweeps / frame <span class="val" data-val="rate"></span></label>
+      <input type="range" id="rate" min="1" max="20" step="1" value="6" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="randomize">randomize</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        ↑↓ steps presets. Below <b>Tc ≈ 2.269</b> domains freeze (ferromagnetic); above, thermal noise wins.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>T <b id="tval">2.00</b> · <b id="phase">ferromagnetic</b></div>
+    <div>magnetization <b id="mag">0.000</b></div>
+  </div>
+
+  <div class="hint">drag <b>temperature</b> through <b>Tc ≈ 2.27</b> · watch domains freeze/melt · press <b>R</b></div>
+
+  <script type="module" src="../src/ising.js"></script>
+</body>
+</html>
