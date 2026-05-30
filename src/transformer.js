@@ -39,6 +39,7 @@ scene.fog = new THREE.FogExp2(0x0a0118, 0.0035);
 const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
 const T = TOKENS.length, VOCAB = TOKENS, Dm = 16;
 let HEADS = 4; const LAYERS = 6; let DK = Dm / HEADS;
+const HEAD_COLORS = [0xff2e97, 0x2be4ff, 0x62ffb3, 0xb06bff, 0xffd166, 0xff7a5a];  // per-head attention-line color
 
 // ---------- PIPELINE geometry (horizontal: input → output along +X) ----------
 // A transformer reads left→right; data flows through a connected residual stream.
@@ -135,6 +136,7 @@ const nodeGeo = new THREE.SphereGeometry(1.15, 20, 14);
 const nodeMat = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.25, emissive: 0x12042a });
 let valueMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
+const tokY = (i) => RES_CY + (i - (T - 1) / 2) * CW;   // token row → Y (used by nodes AND attention wires)
 const vmag = (row) => { let s = 0; for (let d = 0; d < row.length; d++) s += row[d] * row[d]; return 0.5 + 0.5 * Math.tanh(Math.sqrt(s / row.length) * 0.9); };
 
 function ablate(H) {
@@ -171,7 +173,6 @@ function buildValueCubes() {
 // active head (cycle with the head button). A faint identity wire keeps the
 // stream readable where attention is weak.
 const flowGroup = new THREE.Group(); scene.add(flowGroup);
-const tokY = (i) => RES_CY + (i - (T - 1) / 2) * CW;
 const hc = new THREE.Color();
 let attnEdges = 0;
 function buildFlow() {
