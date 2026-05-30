@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fourier Epicycles 周転円 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Fourier epicycles — a chain of rotating circles (computed by DFT) draws any closed shape. The geometry of the Fourier series." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">summing circles</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Fourier <em>Epicycles</em></div>
+      <div class="s">25 · 周転円 circles draw anything</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>周転円 · Σ cₖ e^(ikt)</h3>
+    <div class="field">
+      <label>shape <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="shapes"></div>
+    </div>
+    <div class="field">
+      <label for="circles">circles <span class="val" data-val="circles"></span></label>
+      <input type="range" id="circles" min="2" max="160" step="1" value="60" />
+    </div>
+    <div class="field">
+      <label for="speed">speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>↑↓ shape</div>
+  </div>
+
+  <div class="hint">↑↓ <b>shape</b> · more <b>circles</b> = sharper · the DFT in motion · press <b>R</b></div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/epicycles.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hopf Fibration ホップ — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The Hopf fibration — S³→S². Each point of a sphere lifts to a great circle in the 3-sphere; projected to R³ they become interlocking linked circles." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">linking circles</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Hopf <em>Fibration</em></div>
+      <div class="s">26 · ホップ S³ → S²</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>ホップ · linked fibers</h3>
+    <div class="field">
+      <label>fiber family <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="families"></div>
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset view</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Each circle is the <b>fiber</b> of one point on a sphere. Any two are <b>linked</b> — a Hopf link. This is 4-dimensional structure, projected into 3D.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="nfib">32</b> fibers · <b id="famname">rings</b></div>
+    <div>↑↓ family</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>fiber family</b> · interlocking 4D circles · press <b>R</b></div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/hopf.js"></script>
+</body>
+</html>

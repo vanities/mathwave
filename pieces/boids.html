@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Boids 群れ — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Craig Reynolds' Boids — emergent 3D flocking from three local rules: separation, alignment, cohesion. No leader." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">gathering the flock</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Boids <em>群れ</em></div>
+      <div class="s">24 · emergent flocking</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>群れ · sep · align · cohere</h3>
+    <div class="field">
+      <label>behavior <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="count">boids <span class="val" data-val="count"></span></label>
+      <input type="range" id="count" min="100" max="900" step="50" value="400" />
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        No leader — each bird follows only its neighbors. Flocking is <b>emergent</b>: complex order from three simple rules.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="nb">400</b> boids · <b id="pname">flock</b></div>
+    <div>↑↓ behavior</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>behavior</b> · no leader, pure emergence · press <b>R</b></div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/boids.js"></script>
+</body>
+</html>

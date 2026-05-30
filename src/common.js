@@ -293,6 +293,7 @@ window.addEventListener("load", () => {
     "orbitals.html", "nbody.html", "ising.html",
     "grokking.html", "embeddings.html",
     "pendulum.html", "diffusion.html", "superposition.html",
+    "boids.html", "epicycles.html", "hopf.html",
   ];
   const curFile = location.pathname.split("/").pop();
   const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };
