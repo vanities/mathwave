@@ -123,7 +123,11 @@ const Blood = (() => {
 
   const simU = {
     uTex: { value: null }, uTexel: { value: new THREE.Vector2(1, 1) },
-    uF: { value: 0.0367 }, uK: { value: 0.0649 }, uDA: { value: 1.0 }, uDB: { value: 0.5 }, uDt: { value: 1.0 },
+    // "coral" (F=0.0545, k=0.062): B blooms and spreads to fill ~half the
+    // field, so the water visibly turns to blood. The old "mitosis" regime
+    // (0.0367/0.0649) kept B sparse and low (~14% of pixels above 0.2),
+    // which read as a near-empty deep-blue screen. (CPU-verified.)
+    uF: { value: 0.0545 }, uK: { value: 0.062 }, uDA: { value: 1.0 }, uDB: { value: 0.5 }, uDt: { value: 1.0 },
   };
   const simScene = new THREE.Scene();
   simScene.add(new THREE.Mesh(fsQuad, new THREE.ShaderMaterial({
@@ -162,13 +166,16 @@ const Blood = (() => {
         vec2 cab = texture2D(uTex, vUv).xy;
         float b = cab.y;
         // water base — dark teal/blue, faint ripple from chemical A
-        vec3 water = mix(vec3(0.015,0.045,0.085), vec3(0.03,0.10,0.16), cab.x);
-        // blood ramp: clotted maroon -> crimson -> arterial red
-        float t = smoothstep(0.06, 0.28, b);
-        vec3 blood = mix(vec3(0.20,0.01,0.02), vec3(0.62,0.04,0.05), t);
-        blood = mix(blood, vec3(0.92,0.12,0.10), smoothstep(0.22, 0.42, b));
-        vec3 col = mix(water, blood, smoothstep(0.05, 0.16, b));
-        col += blood * 0.25 * smoothstep(0.3, 0.5, b);   // glow in the thick of it
+        vec3 water = mix(vec3(0.02,0.06,0.13), vec3(0.04,0.13,0.22), cab.x);
+        // blood ramp: clotted maroon -> crimson -> arterial red.
+        // B peaks near ~0.42 in this regime, so map the ramp over [0.05,0.30]
+        // to keep the blooms vivid red rather than dim maroon.
+        float t = smoothstep(0.05, 0.18, b);
+        vec3 blood = mix(vec3(0.35,0.02,0.03), vec3(0.78,0.05,0.06), t);
+        blood = mix(blood, vec3(0.98,0.16,0.12), smoothstep(0.18, 0.34, b));
+        // transition water->blood quickly so the spreading front is clear
+        vec3 col = mix(water, blood, smoothstep(0.04, 0.12, b));
+        col += blood * 0.45 * smoothstep(0.24, 0.42, b);   // glow in the thick of it
         gl_FragColor = vec4(col, 1.0);
       }`,
   });

@@ -38,8 +38,13 @@ const MAX_GLYPHS = 1400;     // scattering-tongues spark field
 // --- scene -----------------------------------------------------------------
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
+// ACESFilmic (set in makeRenderer) crushes the sandstone midtones — lift the
+// exposure a touch so the lit faces read as bright amber, not dim brown.
+renderer.toneMappingExposure = 1.35;
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x120a06, 0.010);   // warm dusty haze
+// Thin, pushed-back haze: dense fog (0.010) was swallowing the whole tower into
+// near-black; keep just enough warm atmosphere for depth.
+scene.fog = new THREE.FogExp2(0x1a0f08, 0.0036);   // warm dusty haze
 
 const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, 0.1, 3000);
 camera.position.set(0, 60, 150);
@@ -50,10 +55,15 @@ controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.32;
 controls.minDistance = 30; controls.maxDistance = 520;
 controls.target.set(0, 42, 0);
 
-// warm sunlit mood — amber key + cool sky fill so the steps read in 3D
-scene.add(new THREE.AmbientLight(0x4a3a2a, 0.85));
-const key = new THREE.DirectionalLight(0xffd9a0, 1.25); key.position.set(40, 80, 30); scene.add(key);
-const fill = new THREE.DirectionalLight(0x3a4a78, 0.45); fill.position.set(-50, 30, -40); scene.add(fill);
+// warm sunlit mood — strong amber key + warm sky fill so the steps read in 3D.
+// Hemisphere ambient (warm sky / dark warm ground) keeps the shadow side from
+// crushing to black while preserving tier relief.
+scene.add(new THREE.HemisphereLight(0xffe2b0, 0x241a12, 1.15));
+const key = new THREE.DirectionalLight(0xffd6a0, 3.0); key.position.set(40, 80, 30); scene.add(key);
+// warm bounce fill from the shadow side so the dark faces stay legible amber
+const fill = new THREE.DirectionalLight(0xffb870, 0.95); fill.position.set(-50, 35, -25); scene.add(fill);
+// cool rim/back light pops the silhouette off the dark backdrop
+const rim = new THREE.DirectionalLight(0x9fb6ff, 0.85); rim.position.set(-25, 55, -65); scene.add(rim);
 addGrid(scene, { size: 480, divisions: 48, y: 0 });
 addSun(scene, { scale: 150, position: [0, 70, -420] });
 
@@ -85,7 +95,12 @@ const HELIX_TURN = 26 * DEG; // ring-to-ring rotation → the spiral
 
 // --- one InstancedMesh of bricks ------------------------------------------
 const brickGeo = new THREE.BoxGeometry(1, 1, 1);
-const brickMat = new THREE.MeshStandardMaterial({ roughness: 0.92, metalness: 0.04 });
+const brickMat = new THREE.MeshStandardMaterial({
+  roughness: 0.8, metalness: 0.0,
+  // a faint warm self-glow so the masonry never reads as a flat black blob,
+  // even on faces the key/fill miss entirely.
+  emissive: 0x2a1808, emissiveIntensity: 0.5,
+});
 let bricks = new THREE.InstancedMesh(brickGeo, brickMat, MAX_BRICKS);
 bricks.frustumCulled = false;                       // they fly far during the fall
 bricks.count = 0;
@@ -107,16 +122,17 @@ let brickCount = 0;
 let towerTop = 0;           // world Y of the tower's crown (for camera + glyph spawn)
 
 // sandstone → amber → sunlit-tip palette by tier height (warm, not purple)
-const cLow = new THREE.Color(0x8a5a32);   // shadowed sandstone base
-const cMid = new THREE.Color(0xd99441);   // lit amber
-const cTop = new THREE.Color(0xffe6a8);   // sunstruck crown
+const cLow = new THREE.Color(0xc88f4e);   // warm sandstone base (brightened)
+const cMid = new THREE.Color(0xe6a94f);   // lit amber
+const cTop = new THREE.Color(0xffedbe);   // sunstruck crown
 const tmpCol = new THREE.Color();
 function tierColor(tier, nTiers) {
   const t = nTiers > 1 ? tier / (nTiers - 1) : 0;
   if (t < 0.5) tmpCol.copy(cLow).lerp(cMid, t / 0.5);
   else tmpCol.copy(cMid).lerp(cTop, (t - 0.5) / 0.5);
-  // subtle per-brick value jitter so the masonry isn't flat
-  const j = 0.86 + Math.random() * 0.28;
+  // subtle per-brick value jitter so the masonry isn't flat (skewed slightly
+  // bright so individual bricks never darken into mud)
+  const j = 0.92 + Math.random() * 0.22;
   tmpCol.multiplyScalar(j);
   return tmpCol;
 }
