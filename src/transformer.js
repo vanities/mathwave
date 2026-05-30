@@ -45,12 +45,12 @@ let HEADS = 4; const LAYERS = 6; let DK = Dm / HEADS;
 //   X = stage (embed, then each layer) — the direction of compute
 //   Y = token position (rows stack up)
 //   Z = channel / feature dimension (depth)
-const CW = 1.0;                   // cube cell spacing
+const CW = 2.6;                   // token spacing → each stage is a tall, substantial column
 const STAGE_X = 26.0;            // horizontal gap between stages
 const EMB_X = 0.0;               // embeddings at the left
 const xOfStage = (s) => EMB_X + s * STAGE_X;   // s=0 embed, s=L+1 → layer L output
 const xOfLayer = (L) => xOfStage(L + 1);
-const RES_CY = 8.0;              // residual slab vertical center (tokens stack around it)
+const RES_CY = 14.0;             // vertical center (tokens stack around it)
 const END_X = xOfLayer(LAYERS - 1);
 const MIDX = END_X / 2;
 
@@ -126,105 +126,104 @@ function makeLabel(text, color = "#f6e9ff", glow = "#2be4ff") {
 const labelGroup = new THREE.Group(); scene.add(labelGroup);
 const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop(); c.geometry && c.geometry.dispose(); c.material && (c.material.map && c.material.map.dispose(), c.material.dispose()); G.remove(c); } };
 
-// ---------- the voxel tensors ----------
-// two instanced meshes: unit value-cubes (embed/QKV/residual) and attention bars
-const cubeGeo = new THREE.BoxGeometry(CW * 0.82, CW * 0.82, CW * 0.82);
-const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.38, metalness: 0.18, vertexColors: false });
-const barGeo = new THREE.BoxGeometry(CW * 0.8, 1, CW * 0.8).translate(0, 0.5, 0);
-const barMat = new THREE.MeshStandardMaterial({ roughness: 0.32, metalness: 0.22 });
-let valueMesh = null, barMesh = null;
+// ---------- ONE structure: token NODES, wired together by ATTENTION ----------
+// Not two competing things. Each token at each stage is a small glowing node
+// (sphere), colored by its residual-state magnitude. Everything else is the
+// attention wiring between nodes (built in buildFlow). The nodes are the neurons;
+// the lines are the attention. That's the whole object.
+const nodeGeo = new THREE.SphereGeometry(1.15, 20, 14);
+const nodeMat = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.25, emissive: 0x12042a });
+let valueMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
+const vmag = (row) => { let s = 0; for (let d = 0; d < row.length; d++) s += row[d] * row[d]; return 0.5 + 0.5 * Math.tanh(Math.sqrt(s / row.length) * 0.9); };
 
-const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);   // value → 0..1 for coloring
-
-// a (T × C) matrix → a vertical SLAB of cubes standing in the Y-Z plane at x=cx:
-//   token i → Y (rows stack up), channel c → Z (depth). This is one "tensor" the
-//   data becomes at a stage; slabs sit in a row along +X = the pipeline.
-function slabSpecs(M, cx, specs) {
-  const rows = M.length, cols = M[0].length;
-  for (let i = 0; i < rows; i++) for (let c = 0; c < cols; c++)
-    specs.push({ x: cx, y: RES_CY + (i - (rows - 1) / 2) * CW, z: (c - (cols - 1) / 2) * CW, t: vnorm(M[i][c]) });
-}
 function ablate(H) {
   if (!abliterate) return H;
   return H.map((row) => { let dt = 0; for (let d = 0; d < Dm; d++) dt += row[d] * refusal[d]; return row.map((v, d) => v - dt * refusal[d]); });
 }
+// one node per (stage, token); stages: embed, then each layer output
 function buildValueCubes() {
-  const specs = [];
-  slabSpecs(embed, EMB_X, specs);                       // embeddings at the far left
-  for (let L = 0; L < LAYERS; L++) slabSpecs(ablate(hiddenByLayer[L]), xOfLayer(L), specs);  // residual after each layer
+  const stages = [embed, ...hiddenByLayer.map(ablate)];
+  const count = stages.length * T;
   if (valueMesh) { scene.remove(valueMesh); valueMesh.dispose(); }
-  valueMesh = new THREE.InstancedMesh(cubeGeo, cubeMat, specs.length);
+  valueMesh = new THREE.InstancedMesh(nodeGeo, nodeMat, count);
   valueMesh.frustumCulled = false;
-  for (let n = 0; n < specs.length; n++) {
-    const s = specs[n];
-    dummy.position.set(s.x, s.y, s.z); dummy.scale.setScalar(1); dummy.updateMatrix();
-    valueMesh.setMatrixAt(n, dummy.matrix);
-    const c = ramp(s.t); col.setRGB(c[0], c[1], c[2]); valueMesh.setColorAt(n, col);
+  let n = 0;
+  for (let s = 0; s < stages.length; s++) {
+    for (let i = 0; i < T; i++) {
+      dummy.position.set(xOfStage(s), tokY(i), 0); dummy.updateMatrix();
+      valueMesh.setMatrixAt(n, dummy.matrix);
+      const c = ramp(vmag(stages[s][i])); col.setRGB(c[0], c[1], c[2]); valueMesh.setColorAt(n, col);
+      n++;
+    }
   }
   scene.add(valueMesh);
   valueMesh.instanceMatrix.needsUpdate = true; if (valueMesh.instanceColor) valueMesh.instanceColor.needsUpdate = true;
-  buildFlow();   // the connectors that make the stream continuous
-  return specs.length;
+  buildFlow();   // the attention wiring between the nodes
+  return count;
 }
 
-// ---------- the CONNECTED residual stream: lines linking each token's slab to
-//   the same token in the next slab, so data visibly flows through every stage.
+// ---------- ATTENTION lives IN the connections ----------
+// Each layer's wiring isn't plain — it IS the attention pattern: a curve from
+// key token j (at the input slab) to query token i (at the output slab), with
+// brightness = A[i][j]. So you literally see token i reaching back and pulling
+// on the tokens it attends to. Causal ⇒ i only connects to j ≤ i. Colored by the
+// active head (cycle with the head button). A faint identity wire keeps the
+// stream readable where attention is weak.
 const flowGroup = new THREE.Group(); scene.add(flowGroup);
+const tokY = (i) => RES_CY + (i - (T - 1) / 2) * CW;
+const hc = new THREE.Color();
+let attnEdges = 0;
 function buildFlow() {
   clearGroup(flowGroup);
-  const stages = [embed, ...hiddenByLayer.map(ablate)];   // embed → L0 → … → L5
-  const zMid = 0;
-  for (let s = 0; s < stages.length - 1; s++) {
-    const x0 = xOfStage(s), x1 = xOfStage(s + 1);
-    const pos = [], colr = [];
-    for (let i = 0; i < T; i++) {
-      const y = RES_CY + (i - (T - 1) / 2) * CW;
-      // a faint per-token wire from this slab's front face to the next
-      pos.push(x0 + 0.5, y, zMid, x1 - 0.5, y, zMid);
-      const c = ramp(0.3 + 0.5 * (i / T));
-      colr.push(c[0], c[1], c[2], c[0], c[1], c[2]);
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-    g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3));
-    flowGroup.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false })));
+  hc.setHex(HEAD_COLORS[activeHead % HEAD_COLORS.length]);
+  const pos = [], colr = [];
+  attnEdges = 0;
+  // faint identity residual: token i → token i, very dim (the stream skeleton)
+  const idPos = [], idCol = [];
+  for (let s = 0; s < LAYERS + 1; s++) {
+    if (s >= LAYERS) break;
+    const x0 = xOfStage(s) + 0.6, x1 = xOfStage(s + 1) - 0.6;
+    for (let i = 0; i < T; i++) { const y = tokY(i); idPos.push(x0, y, 0, x1, y, 0); const c = ramp(0.25 + 0.5 * (i / T)); for (let k = 0; k < 2; k++) idCol.push(c[0] * 0.25, c[1] * 0.25, c[2] * 0.25); }
   }
-  // a bright spine down the middle of the whole stream (the residual highway)
-  const sp = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(EMB_X - 1, RES_CY, 0), new THREE.Vector3(END_X + 1, RES_CY, 0)]);
-  flowGroup.add(new THREE.Line(sp, new THREE.LineBasicMaterial({ color: 0x62ffb3, transparent: true, opacity: 0.35 })));
-}
+  const idG = new THREE.BufferGeometry();
+  idG.setAttribute("position", new THREE.Float32BufferAttribute(idPos, 3));
+  idG.setAttribute("color", new THREE.Float32BufferAttribute(idCol, 3));
+  flowGroup.add(new THREE.LineSegments(idG, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false })));
 
-// attention bars: a T×T field floating ABOVE each layer's stage (between the
-// previous residual slab and this one — that's where attention happens). Bar
-// height = weight; the causal mask is the empty upper triangle (a 3D staircase).
-function buildBars() {
-  const specs = [];   // {x,y,z,h,t,masked}
+  // attention connections for the active head, per layer
+  const SEG = 14;
   for (let L = 0; L < LAYERS; L++) {
-    const cx = (xOfStage(L) + xOfStage(L + 1)) / 2;     // midway across the layer
     const A = attnByLayer[L][activeHead];
-    for (let i = 0; i < T; i++) for (let j = 0; j < T; j++) {
-      const masked = j > i, w = masked ? 0 : A[i][j];
-      specs.push({
-        x: cx + (j - (T - 1) / 2) * CW,                 // key index → X (across the stage)
-        y: RES_CY + 13,                                  // hovering above the stream
-        z: (i - (T - 1) / 2) * CW,                       // query index → Z (depth)
-        h: masked ? 0.05 : 0.15 + w * 5.5, t: w, masked,
-      });
+    const x0 = xOfStage(L) + 0.6, x1 = xOfStage(L + 1) - 0.6;
+    for (let i = 0; i < T; i++) for (let j = 0; j <= i; j++) {
+      const w = A[i][j]; if (w < 0.06) continue;               // declutter weak links
+      attnEdges++;
+      const yj = tokY(j), yi = tokY(i);
+      // quadratic bezier bowing forward in +Z (toward viewer) by strength, so the
+      // strongest attention arcs reach out the most and don't all overlap
+      const mx = (x0 + x1) / 2, my = (yj + yi) / 2, mz = 3.0 + w * 16.0 + (i - j) * 0.4;
+      const b = 0.28 + w * 2.3;   // brightness = attention weight — strong links blaze                                 // brightness = weight
+      let px = x0, py = yj, pz = 0;
+      for (let s = 1; s <= SEG; s++) {
+        const t = s / SEG, u = 1 - t;
+        const nx = u*u*x0 + 2*u*t*mx + t*t*x1;
+        const ny = u*u*yj + 2*u*t*my + t*t*yi;
+        const nz = u*u*0  + 2*u*t*mz + t*t*0;
+        pos.push(px, py, pz, nx, ny, nz);
+        colr.push(hc.r*b, hc.g*b, hc.b*b, hc.r*b, hc.g*b, hc.b*b);
+        px = nx; py = ny; pz = nz;
+      }
     }
   }
-  if (barMesh) { scene.remove(barMesh); barMesh.dispose(); }
-  barMesh = new THREE.InstancedMesh(barGeo, barMat, specs.length);
-  barMesh.frustumCulled = false;
-  for (let n = 0; n < specs.length; n++) {
-    const s = specs[n];
-    dummy.position.set(s.x, s.y, s.z); dummy.scale.set(1, s.h, 1); dummy.updateMatrix();
-    barMesh.setMatrixAt(n, dummy.matrix);
-    if (s.masked) col.setRGB(0.05, 0.03, 0.1); else { const c = ramp(0.15 + 0.85 * s.t); col.setRGB(c[0], c[1], c[2]); }
-    barMesh.setColorAt(n, col);
-  }
-  barMesh.instanceMatrix.needsUpdate = true; if (barMesh.instanceColor) barMesh.instanceColor.needsUpdate = true;
-  scene.add(barMesh);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3));
+  flowGroup.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })));
+
+  // bright spine = the residual highway running the length of the stream
+  const sp = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(EMB_X - 1, RES_CY, 0), new THREE.Vector3(END_X + 1, RES_CY, 0)]);
+  flowGroup.add(new THREE.Line(sp, new THREE.LineBasicMaterial({ color: 0x62ffb3, transparent: true, opacity: 0.3 })));
 }
 
 // labels under each stage of the horizontal pipeline
@@ -258,7 +257,7 @@ function showLens(L) {
 
 // ---------- (re)build all ----------
 let abliterate = false, activeHead = 0, curLayer = 0, layerT = 0, planeX = EMB_X, valCount = 0;
-function rebuild() { initWeights(); forward(); valCount = buildValueCubes(); buildBars(); buildLabels(); showLens(LAYERS - 1); }
+function rebuild() { initWeights(); forward(); valCount = buildValueCubes(); buildLabels(); showLens(LAYERS - 1); }
 
 // ---------- panel ----------
 const ablBtn = document.getElementById("abliterate");
@@ -266,7 +265,7 @@ ablBtn.addEventListener("click", () => { abliterate = !abliterate; ablBtn.classL
 let layerSpeed = 1; bindRange("speed", (v) => { layerSpeed = v; }, (v) => v.toFixed(2) + "×");
 bindRange("heads", (v) => { HEADS = Math.round(v); activeHead = Math.min(activeHead, HEADS - 1); rebuild(); }, (v) => `${Math.round(v)}`);
 const headBtn = document.getElementById("head");
-headBtn.addEventListener("click", () => { activeHead = (activeHead + 1) % HEADS; headBtn.textContent = "head " + (activeHead + 1); buildValueCubes(); buildBars(); });
+headBtn.addEventListener("click", () => { activeHead = (activeHead + 1) % HEADS; headBtn.textContent = "head " + (activeHead + 1); buildFlow(); });
 document.getElementById("resample").addEventListener("click", () => { seedSalt += 13; rebuild(); });
 setVariantCycler((d) => { ablBtn.click(); return abliterate ? "abliterated" : "intact"; });
 
@@ -276,7 +275,7 @@ liftVeil();
 onResize(renderer, camera);
 const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
-window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, valueCubes: valCount, bars: barMesh ? barMesh.count : 0, attnRowSum: attnByLayer[0][0][T - 1].reduce((a, b) => a + b, 0).toFixed(3) });
+window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, valueCubes: valCount, attnEdges, activeHead, attnRowSum: attnByLayer[0][0][T - 1].reduce((a, b) => a + b, 0).toFixed(3) });
 
 loop((dt) => {
   meter(dt);
