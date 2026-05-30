@@ -356,17 +356,7 @@ window.addEventListener("load", () => {
 // (No landing page — the gallery IS the rooms.)
 // ============================================================
 (function kioskNav() {
-  const ROOMS = [
-    "parametric.html", "fractal.html", "attractor.html", "hamiltonian.html",
-    "vectorfield.html", "gradient.html", "life.html", "reaction.html",
-    "flatland.html", "sorting.html", "sorting3d.html", "eversion.html",
-    "earthbound.html", "pixelsort.html", "transformer.html",
-    "orbitals.html", "nbody.html", "ising.html",
-    "grokking.html", "embeddings.html",
-    "pendulum.html", "diffusion.html", "superposition.html",
-    "boids.html", "epicycles.html", "hopf.html",
-    "bloch.html", "wolfram.html", "physarum.html",
-  ];
+  // uses the module-scope ROOMS (single source of truth, shared with the recorder)
   const curFile = location.pathname.split("/").pop();
   const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };
 
