@@ -111,8 +111,8 @@ const frag = `
     // Hyperbolic requires coshri > 1; clamp degenerate (Euclidean/spherical)
     // settings so the math stays finite instead of NaN-ing out.
     coshri = max(coshri, 1.0001);
-    float ri = acosh(coshri);              // GLSL ES 3.0-style; polyfilled below
-    float me = tanh(ri * 0.5);             // edge midpoint, Euclidean radius
+    float ri = acoshP(coshri);             // renamed: tanh/acosh are WebGL2 built-ins
+    float me = tanhP(ri * 0.5);            // edge midpoint, Euclidean radius
     me = clamp(me, 1e-3, 0.999);
     float cd = (1.0 + me * me) / (2.0 * me);   // mirror-circle centre (cd,0)
     float cr = (1.0 - me * me) / (2.0 * me);   // mirror-circle radius
@@ -191,12 +191,12 @@ const frag = `
   }
 `;
 
-// WebGL1 (GLSL ES 1.0) lacks acosh/tanh; prepend portable polyfills so the
-// shader compiles regardless of which GLSL version Three picks.
+// acosh/tanh are BUILT-INS on WebGL2 (GLSL ES 3.0) → redefining them is a compile
+// error (black screen). Use uniquely-named helpers so it compiles on any version.
 const polyfills = `
   precision highp float;
-  float acosh(float x) { return log(x + sqrt(max(x*x - 1.0, 0.0))); }
-  float tanh(float x) { float e = exp(2.0 * x); return (e - 1.0) / (e + 1.0); }
+  float acoshP(float x) { return log(x + sqrt(max(x*x - 1.0, 0.0))); }
+  float tanhP(float x) { float e = exp(2.0 * x); return (e - 1.0) / (e + 1.0); }
 `;
 
 const material = new THREE.ShaderMaterial({

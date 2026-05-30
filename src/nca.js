@@ -264,7 +264,7 @@ function seedGlider() {
       if (r > R) continue;
       const x = (cx + dx) | 0, y = (cy + dy) | 0;
       const ang = Math.atan2(dy, dx);
-      const ring = Math.exp(-((r - R * 0.55) / (R * 0.30)) ** 2);
+      const ring = Math.exp(-Math.pow((r - R * 0.55) / (R * 0.30), 2));
       const bias = 0.5 + 0.5 * Math.cos(ang - 0.6);
       const v = Math.min(1, ring * (0.55 + 0.7 * bias));
       const i = y * SIM + x;

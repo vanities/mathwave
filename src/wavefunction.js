@@ -48,7 +48,7 @@ const VSHADER = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(pos
 const simU = {
   uTex: { value: null },
   uTexel: { value: new THREE.Vector2(1 / SW, 1 / SH) },
-  uDt: { value: 0.14 },
+  uDt: { value: 0.06 },
 };
 const simScene = new THREE.Scene();
 simScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
@@ -87,6 +87,8 @@ simScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
       // I update uses fresh R: I_new = I + dt*(-0.5*lapR + V*R_new)
       float In = c.y + uDt * (-0.5 * lapR + V * Rn);
 
+      // clamp amplitude so any residual leapfrog instability can't blow to ∞→yellow
+      Rn = clamp(Rn, -3.0, 3.0); In = clamp(In, -3.0, 3.0);
       float dens = Rn * Rn + In * In;                  // |ψ|² cached for display
       gl_FragColor = vec4(Rn, In, V, dens);
     }`,
@@ -114,8 +116,8 @@ dispScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
     void main(){
       vec4 s = texture2D(uTex, vUv);
       float R = s.x, I = s.y, V = s.z, dens = s.w;
-      float d = clamp(dens * 26.0 * uGain, 0.0, 1.0);   // density → ramp position
-      float t = pow(d, 0.55);
+      float d = 1.0 - exp(-dens * 10.0 * uGain);        // soft exposure — never flat-saturates to yellow
+      float t = pow(clamp(d, 0.0, 1.0), 0.6);
       vec3 col = pal(t);
 
       // faint phase tint (hue wobble from arg(ψ)), only where there's amplitude
@@ -192,7 +194,7 @@ function seed() {
   const data = new Float32Array(SW * SH * 4);
   buildPotential(cfg, data);
 
-  const sigma = 0.055;                 // packet width (normalized units)
+  const sigma = 0.09;                  // packet width — wider = smoother = stable leapfrog
   const kx = cfg.k, ky = 0.0;          // momentum, mostly along +x
   const kGrid = 2.0 * Math.PI * 6.0;   // convert k → per-grid phase winding
   const inv2s2 = 1.0 / (2.0 * sigma * sigma);
