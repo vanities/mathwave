@@ -1,5 +1,5 @@
-// transformer.js — a REAL toy transformer forward pass, rendered.
-// Not decorative: every number on screen comes from actual matrix math.
+// transformer.js — a REAL toy transformer forward pass, rendered as a HUGE 3D
+// monument you fly around. Every number comes from actual matrix math:
 //
 //   x   = embed(token) + positional_encoding(pos)        (sinusoidal PE)
 //   Qh  = x·Wq_h   Kh = x·Wk_h   Vh = x·Wv_h             (per head)
@@ -9,10 +9,15 @@
 //   x  ← x + W2·relu(W1·x)                                (FFN + residual)
 //   repeat × LAYERS ;  logits = x·Wuᵀ  (logit lens at every layer)
 //
-// Shown: token row, the canonical T×T attention HEATMAP for the active
-// head/layer, attention arcs (causal, opacity = weight, color = head), a
-// logit-lens readout of the forming prediction, and the residual-stream cloud
-// with a live ABLITERATION toggle (project off the refusal direction).
+// 3D LAYOUT (this is the part that's now actually 3D, not a flat diagram):
+//   • X = token position; Y = LAYER (the residual stream flows UP the stack);
+//     so every token is a vertical COLUMN and the model is a tall lattice.
+//   • Attention arcs fan out in DEPTH (+Z), one z-plane per head, colored by
+//     head, thickness/opacity ∝ weight — a 3D web in front of each layer.
+//   • The T×T attention map is a real 3D BAR CHART (bar height = weight), so the
+//     causal lower-triangle is a literal 3D staircase.
+//   • Residual-stream cloud (PCA→3D) with the live ABLITERATION toggle.
+//   A glowing compute-plane rises through the layers = the forward pass.
 //
 // Refs: Vaswani et al. 2017; logit lens (nostalgebraist); abliteration
 //   (arditi et al. / mlabonne) — "refusal ≈ one residual-stream direction".
@@ -26,48 +31,55 @@ import {
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0a0118, 0.01);
-
-const camera = new THREE.PerspectiveCamera(54, innerWidth / innerHeight, 0.1, 600);
-camera.position.set(0, 7, 30);
-
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true; controls.dampingFactor = 0.07;
-controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.32;
-controls.minDistance = 12; controls.maxDistance = 90;
-controls.target.set(0, 6, 0);
-
-scene.add(new THREE.AmbientLight(0x2a1860, 0.9));
-const key = new THREE.DirectionalLight(0xfff1dd, 0.85); key.position.set(8, 16, 12); scene.add(key);
-const rim = new THREE.DirectionalLight(0x2be4ff, 0.6); rim.position.set(-12, 8, -8); scene.add(rim);
-addGrid(scene, { size: 60, divisions: 30, y: -1 });
-addSun(scene, { scale: 26, position: [0, 16, -78] });
+scene.fog = new THREE.FogExp2(0x0a0118, 0.0045);
 
 // ---------- model dims (toy but real) ----------
-const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "purr"];
-const T = TOKENS.length;
-const VOCAB = TOKENS;            // tied: predict from the same small vocab
-const Dm = 16;                   // model dim
+const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
+const T = TOKENS.length;          // 10 tokens
+const VOCAB = TOKENS;
+const Dm = 16;                    // model dim
 let HEADS = 4;
-const LAYERS = 4;
-let DK = Dm / HEADS;             // per-head dim
+const LAYERS = 6;                 // a taller stack
+let DK = Dm / HEADS;
 const HEAD_COLORS = [0xff2e97, 0x2be4ff, 0x62ffb3, 0xb06bff, 0xffd166, 0xff7a5a];
 
-// ---------- deterministic RNG + gaussian (seedable, no Math.random at top level) ----------
+// ---------- HUGE 3D layout ----------
+const COL_W = 5.0;                // token spacing (x)
+const LAYER_H = 8.0;             // layer spacing (y) — tall
+const BASE_Y = 3.0;
+const xOf = (i) => (i - (T - 1) / 2) * COL_W;
+const yOfLayer = (L) => BASE_Y + L * LAYER_H;
+const TOP_Y = yOfLayer(LAYERS - 1);
+const MIDY = (BASE_Y + TOP_Y) / 2;
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 2000);
+camera.position.set(0, MIDY, 95);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.07;
+controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.45;
+controls.minDistance = 25; controls.maxDistance = 320;
+controls.target.set(0, MIDY, 0);
+
+scene.add(new THREE.AmbientLight(0x2a1860, 0.95));
+const key = new THREE.DirectionalLight(0xfff1dd, 0.9); key.position.set(20, 40, 30); scene.add(key);
+const rim = new THREE.DirectionalLight(0x2be4ff, 0.6); rim.position.set(-30, 10, -20); scene.add(rim);
+addGrid(scene, { size: 160, divisions: 32, y: -1 });
+addSun(scene, { scale: 60, position: [0, MIDY, -180] });
+
+// ---------- deterministic RNG ----------
 let seedSalt = 7;
 function rng(seed) { let s = (seed * 9301 + 49297) % 233280 || 1; return () => (s = (s * 9301 + 49297) % 233280) / 233280; }
 function gauss(r) { return Math.sqrt(-2 * Math.log(r() + 1e-9)) * Math.cos(2 * Math.PI * r()); }
 function mat(rows, cols, r, scale = 1) { return Array.from({ length: rows }, () => Array.from({ length: cols }, () => gauss(r) * scale)); }
 
 // ---------- linear algebra ----------
-const matmul = (A, B) => { // [n×k]·[k×m] → [n×m]
+const matmul = (A, B) => {
   const n = A.length, k = B.length, m = B[0].length, out = [];
   for (let i = 0; i < n; i++) { const row = new Array(m).fill(0); for (let p = 0; p < k; p++) { const a = A[i][p]; const Bp = B[p]; for (let j = 0; j < m; j++) row[j] += a * Bp[j]; } out.push(row); }
   return out;
 };
 const addM = (A, B) => A.map((r, i) => r.map((v, j) => v + B[i][j]));
 const relu = (A) => A.map((r) => r.map((v) => Math.max(0, v)));
-const slice = (A, c0, c1) => A.map((r) => r.slice(c0, c1));
 const concatCols = (parts) => parts[0].map((_, i) => parts.flatMap((P) => P[i]));
 
 // ---------- weights ----------
@@ -76,10 +88,7 @@ function sinusoidalPE() {
   const pe = [];
   for (let pos = 0; pos < T; pos++) {
     const row = [];
-    for (let i = 0; i < Dm; i++) {
-      const k = Math.floor(i / 2), denom = Math.pow(10000, (2 * k) / Dm);
-      row.push(i % 2 === 0 ? Math.sin(pos / denom) : Math.cos(pos / denom));
-    }
+    for (let i = 0; i < Dm; i++) { const k = Math.floor(i / 2), denom = Math.pow(10000, (2 * k) / Dm); row.push(i % 2 === 0 ? Math.sin(pos / denom) : Math.cos(pos / denom)); }
     pe.push(row);
   }
   return pe;
@@ -87,16 +96,14 @@ function sinusoidalPE() {
 function initWeights() {
   DK = Dm / HEADS;
   const r = rng(1234 + seedSalt);
-  WE = mat(T, Dm, r, 1.0);                 // token embeddings (one row per token slot)
-  PE = sinusoidalPE();
+  WE = mat(T, Dm, r, 1.0); PE = sinusoidalPE();
   WQ = []; WK = []; WV = [];
   for (let h = 0; h < HEADS; h++) { WQ.push(mat(Dm, DK, r, 1 / Math.sqrt(Dm))); WK.push(mat(Dm, DK, r, 1 / Math.sqrt(Dm))); WV.push(mat(Dm, DK, r, 1 / Math.sqrt(Dm))); }
   WO = mat(Dm, Dm, r, 1 / Math.sqrt(Dm));
   W1 = mat(Dm, Dm * 2, r, 1 / Math.sqrt(Dm));
   W2 = mat(Dm * 2, Dm, r, 1 / Math.sqrt(Dm * 2));
-  WU = mat(T, Dm, r, 1 / Math.sqrt(Dm));   // unembed → logit per vocab token
+  WU = mat(T, Dm, r, 1 / Math.sqrt(Dm));
 }
-
 function softmaxRowCausal(s, i) {
   let mx = -1e9; for (let j = 0; j <= i; j++) mx = Math.max(mx, s[j]);
   let sum = 0; const out = new Array(s.length).fill(0);
@@ -105,17 +112,14 @@ function softmaxRowCausal(s, i) {
   return out;
 }
 
-// run the full forward pass; capture per-layer attention (per head) and hidden states
-let attnByLayer;   // [layer][head] = T×T matrix
-let hiddenByLayer; // [layer] = T×Dm   (residual stream after the layer)
-let refusal;       // unit vector in Dm (the "refusal direction")
+let attnByLayer, hiddenByLayer, refusal;
 function forward() {
   attnByLayer = []; hiddenByLayer = [];
-  let x = addM(WE, PE);                     // [T×Dm]
+  let x = addM(WE, PE);
   for (let L = 0; L < LAYERS; L++) {
     const heads = [], headOuts = [];
     for (let h = 0; h < HEADS; h++) {
-      const Q = matmul(x, WQ[h]), K = matmul(x, WK[h]), V = matmul(x, WV[h]); // [T×DK]
+      const Q = matmul(x, WQ[h]), K = matmul(x, WK[h]), V = matmul(x, WV[h]);
       const A = [];
       for (let i = 0; i < T; i++) {
         const s = new Array(T).fill(-1e9);
@@ -123,159 +127,185 @@ function forward() {
         A.push(softmaxRowCausal(s, i));
       }
       heads.push(A);
-      // context = A·V
       const ctx = A.map((arow) => { const o = new Array(DK).fill(0); for (let j = 0; j < T; j++) for (let p = 0; p < DK; p++) o[p] += arow[j] * V[j][p]; return o; });
       headOuts.push(ctx);
     }
-    const concat = concatCols(headOuts);    // [T×Dm]
-    x = addM(x, matmul(concat, WO));        // attention residual
-    x = addM(x, matmul(relu(matmul(x, W1)), W2)); // FFN residual
+    const concat = concatCols(headOuts);
+    x = addM(x, matmul(concat, WO));
+    x = addM(x, matmul(relu(matmul(x, W1)), W2));
     attnByLayer.push(heads);
     hiddenByLayer.push(x.map((r) => r.slice()));
   }
-  // refusal direction = mean hidden state (a real direction in residual space)
   const mean = new Array(Dm).fill(0);
   for (const row of hiddenByLayer[LAYERS - 1]) for (let d = 0; d < Dm; d++) mean[d] += row[d] / T;
   const nrm = Math.hypot(...mean) || 1; refusal = mean.map((v) => v / nrm);
 }
-
-// logit lens: from a hidden state, which vocab token wins?
 function predict(hiddenRow) {
   let best = 0, bestv = -1e9;
   for (let t = 0; t < VOCAB.length; t++) { let d = 0; for (let p = 0; p < Dm; p++) d += hiddenRow[p] * WU[t][p]; if (d > bestv) { bestv = d; best = t; } }
   return VOCAB[best];
 }
 
-// ---------- scene scaffolding ----------
-const COL_W = 3.0, LAYER_H = 2.0;
-const xOf = (i) => (i - (T - 1) / 2) * COL_W;
-const yOfLayer = (L) => 1 + L * LAYER_H;
-
-const nodeGroup = new THREE.Group(); scene.add(nodeGroup);
-const arcGroup = new THREE.Group(); scene.add(arcGroup);
+// ============================================================
+// 3D SCENE
+// ============================================================
+const stack = new THREE.Group(); scene.add(stack);     // the lattice (nodes + columns)
+const arcGroup = new THREE.Group(); scene.add(arcGroup); // attention webs per layer
 const clearGroup = (g) => { while (g.children.length) { const c = g.children.pop(); c.geometry && c.geometry.dispose(); c.material && c.material.dispose && c.material.dispose(); g.remove(c); } };
+const at = (sp, p, s) => { sp.position.copy(p); if (s) sp.scale.copy(s); return sp; };
 
 function makeLabel(text, color = "#f6e9ff", glow = "#2be4ff") {
   const c = document.createElement("canvas"); c.width = 256; c.height = 64;
   const g = c.getContext("2d");
-  g.font = "bold 42px 'VT323', monospace"; g.textAlign = "center"; g.textBaseline = "middle";
+  g.font = "bold 44px 'VT323', monospace"; g.textAlign = "center"; g.textBaseline = "middle";
   g.fillStyle = color; g.shadowColor = glow; g.shadowBlur = 12; g.fillText(text, 128, 34);
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
-  sp.scale.set(2.8, 0.7, 1); return sp;
+  sp.scale.set(3.4, 0.85, 1); return sp;
 }
-// place a sprite: Object3D.position/scale are read-only refs, so copy (can't Object.assign)
-const at = (sp, p, s) => { sp.position.copy(p); if (s) sp.scale.copy(s); return sp; };
 
-// token nodes + columns through the layers
-function buildScaffold() {
-  clearGroup(nodeGroup);
-  for (let i = 0; i < T; i++) {
-    const node = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 14), new THREE.MeshStandardMaterial({ color: 0x2be4ff, emissive: 0x0b3a44, roughness: 0.3 }));
-    node.position.set(xOf(i), 1, 0); nodeGroup.add(node);
-    nodeGroup.add(at(makeLabel(TOKENS[i]), new THREE.Vector3(xOf(i), 0.1, 0)));
-    const col = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(xOf(i), 1, 0), new THREE.Vector3(xOf(i), yOfLayer(LAYERS - 1), 0)]);
-    nodeGroup.add(new THREE.Line(col, new THREE.LineBasicMaterial({ color: 0x4a1f7a, transparent: true, opacity: 0.45 })));
+// node spheres for every (token, layer) — an instanced lattice
+let lattice, latColor;
+function buildStack() {
+  clearGroup(stack);
+  const count = T * LAYERS;
+  lattice = new THREE.InstancedMesh(new THREE.SphereGeometry(0.42, 18, 14),
+    new THREE.MeshStandardMaterial({ roughness: 0.3, metalness: 0.2, emissive: 0x10042a }), count);
+  lattice.frustumCulled = false;
+  const d = new THREE.Object3D(); const col = new THREE.Color();
+  for (let L = 0; L < LAYERS; L++) for (let i = 0; i < T; i++) {
+    d.position.set(xOf(i), yOfLayer(L), 0); d.updateMatrix();
+    lattice.setMatrixAt(L * T + i, d.matrix);
+    const c = ramp(0.1 + 0.8 * (L / (LAYERS - 1))); col.setRGB(c[0], c[1], c[2]);
+    lattice.setColorAt(L * T + i, col);
   }
+  stack.add(lattice);
+  // residual columns: one vertical line per token, base→top
+  for (let i = 0; i < T; i++) {
+    const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(xOf(i), BASE_Y, 0), new THREE.Vector3(xOf(i), TOP_Y, 0)]);
+    stack.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0x4a1f7a, transparent: true, opacity: 0.4 })));
+    // token label at the base
+    stack.add(at(makeLabel(TOKENS[i], "#c0a3e8", "#b06bff"), new THREE.Vector3(xOf(i), BASE_Y - 1.6, 0)));
+  }
+  // "layer" tags up the left side
+  for (let L = 0; L < LAYERS; L++) stack.add(at(makeLabel("L" + L, "#8366b8", "#4a1f7a"), new THREE.Vector3(xOf(0) - 3.6, yOfLayer(L), 0), new THREE.Vector3(2.0, 0.9, 1)));
 }
 
-// arcs for one layer (all heads, causal, opacity = weight)
+// attention arcs for layer L: 3D fan, each head on its own depth plane
 function buildArcs(L) {
-  clearGroup(arcGroup);
-  const y = yOfLayer(L);
+  const yb = yOfLayer(L);
   for (let h = 0; h < HEADS; h++) {
     const A = attnByLayer[L][h], color = HEAD_COLORS[h % HEAD_COLORS.length];
+    const zPlane = (h - (HEADS - 1) / 2) * 2.4;     // heads separate in DEPTH → real 3D
     for (let i = 0; i < T; i++) for (let j = 0; j < i; j++) {
-      const w = A[i][j]; if (w < 0.14) continue;
-      const pts = []; const mx = (xOf(i) + xOf(j)) / 2, my = y + 0.8 + w * 2.0 + h * 0.12;
-      for (let s = 0; s <= 16; s++) { const t = s / 16; pts.push(new THREE.Vector3((1 - t) ** 2 * xOf(i) + 2 * (1 - t) * t * mx + t * t * xOf(j), (1 - t) ** 2 * y + 2 * (1 - t) * t * my + t * t * y, 0)); }
+      const w = A[i][j]; if (w < 0.12) continue;
+      const x0 = xOf(j), x1 = xOf(i);
+      const mx = (x0 + x1) / 2;
+      const bow = 2.0 + w * 5.0;                     // stronger weight bows further out
+      const my = yb + bow * 0.5, mz = zPlane + bow;  // arc bulges up AND toward +z
+      const pts = [];
+      for (let s = 0; s <= 20; s++) {
+        const t = s / 20, u = 1 - t;
+        pts.push(new THREE.Vector3(
+          u*u*x0 + 2*u*t*mx + t*t*x1,
+          u*u*yb + 2*u*t*my + t*t*yb,
+          u*u*zPlane + 2*u*t*mz + t*t*zPlane,
+        ));
+      }
       const g = new THREE.BufferGeometry().setFromPoints(pts);
-      arcGroup.add(new THREE.Line(g, new THREE.LineBasicMaterial({ color, transparent: true, opacity: Math.min(0.15 + w * 1.3, 0.95), blending: THREE.AdditiveBlending, depthWrite: false })));
+      const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color, transparent: true, opacity: Math.min(0.12 + w * 1.4, 0.95), blending: THREE.AdditiveBlending, depthWrite: false }));
+      line.userData.layer = L; line.userData.baseOp = Math.min(0.12 + w * 1.4, 0.95);
+      arcGroup.add(line);
     }
   }
 }
 
-// ---------- the canonical T×T attention HEATMAP (floating grid, right side) ----------
-const HM = new THREE.Group(); HM.position.set(xOf(T - 1) + 5.5, 6, 0); scene.add(HM);
-let hmCells, hmGeo, hmMesh, hmLabels = [];
-const CELLW = 0.7;
+// ---------- 3D BAR-CHART heatmap (right of the stack) ----------
+const HM = new THREE.Group(); HM.position.set(xOf(T - 1) + 14, MIDY - 6, 0); scene.add(HM);
+const HMW = 1.3;                  // cell footprint
+let hmMesh;
 function buildHeatmap() {
-  clearGroup(HM); hmLabels = [];
-  hmGeo = new THREE.PlaneGeometry(CELLW * 0.92, CELLW * 0.92);
-  hmMesh = new THREE.InstancedMesh(hmGeo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }), T * T);
-  hmMesh.frustumCulled = false;
-  const d = new THREE.Object3D();
-  for (let i = 0; i < T; i++) for (let j = 0; j < T; j++) {
-    d.position.set((j - (T - 1) / 2) * CELLW, ((T - 1) / 2 - i) * CELLW, 0); d.updateMatrix();
-    hmMesh.setMatrixAt(i * T + j, d.matrix);
-  }
-  HM.add(hmMesh);
-  HM.add(at(makeLabel("attention · causal", "#2be4ff", "#2be4ff"), new THREE.Vector3(0, (T / 2) * CELLW + 0.7, 0), new THREE.Vector3(4.4, 1.0, 1)));
+  clearGroup(HM);
+  // base plate
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(T * HMW + 1, 0.3, T * HMW + 1), new THREE.MeshStandardMaterial({ color: 0x14062b, roughness: 0.8, transparent: true, opacity: 0.6 }));
+  plate.position.y = -0.15; HM.add(plate);
+  hmMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(HMW * 0.8, 1, HMW * 0.8).translate(0, 0.5, 0),
+    new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.2 }), T * T);
+  hmMesh.frustumCulled = false; HM.add(hmMesh);
+  HM.add(at(makeLabel("attention Aᵢⱼ · causal", "#2be4ff", "#2be4ff"), new THREE.Vector3(0, T * HMW * 0.5 + 4, 0), new THREE.Vector3(6, 1.3, 1)));
 }
-const hmColor = new THREE.Color();
+const hmColor = new THREE.Color(); const hmDummy = new THREE.Object3D();
 function paintHeatmap(L, head) {
   const A = attnByLayer[L][head];
   for (let i = 0; i < T; i++) for (let j = 0; j < T; j++) {
-    if (j > i) { hmColor.setRGB(0.03, 0.02, 0.07); }          // causal mask → dark (shows the lower-triangular staircase)
-    else { const c = ramp(0.12 + 0.88 * A[i][j]); hmColor.setRGB(c[0], c[1], c[2]); }
+    const masked = j > i;
+    const w = masked ? 0 : A[i][j];
+    const hgt = masked ? 0.04 : 0.1 + w * 9.0;       // bar height = attention weight (3D!)
+    hmDummy.position.set((j - (T - 1) / 2) * HMW, 0, (i - (T - 1) / 2) * HMW);
+    hmDummy.scale.set(1, hgt, 1); hmDummy.updateMatrix();
+    hmMesh.setMatrixAt(i * T + j, hmDummy.matrix);
+    if (masked) hmColor.setRGB(0.05, 0.03, 0.1);
+    else { const c = ramp(0.15 + 0.85 * w); hmColor.setRGB(c[0], c[1], c[2]); }
     hmMesh.setColorAt(i * T + j, hmColor);
   }
-  hmMesh.instanceColor.needsUpdate = true;
+  hmMesh.instanceMatrix.needsUpdate = true;
+  if (hmMesh.instanceColor) hmMesh.instanceColor.needsUpdate = true;
 }
 
-// ---------- residual stream cloud (left side) + abliteration (PCA→3D) ----------
-const RS = new THREE.Group(); RS.position.set(xOf(0) - 5.5, 6, 0); scene.add(RS);
-let dots = [], refLine = null, basis;
+// ---------- residual cloud (left of the stack) + abliteration ----------
+const RS = new THREE.Group(); RS.position.set(xOf(0) - 16, MIDY, 0); scene.add(RS);
+let dots = [], refLine = null, basis, RSCALE = 1, rb3 = [0, 0, 1];
 let abliterate = false;
-function topBasis(rows) {                  // crude: pick 3 most-spread coordinate axes for a stable 3D view
-  const varc = new Array(Dm).fill(0); const mean = new Array(Dm).fill(0);
+function topBasis(rows) {
+  const varc = new Array(Dm).fill(0), mean = new Array(Dm).fill(0);
   for (const r of rows) for (let d = 0; d < Dm; d++) mean[d] += r[d] / rows.length;
   for (const r of rows) for (let d = 0; d < Dm; d++) varc[d] += (r[d] - mean[d]) ** 2;
   const idx = varc.map((v, d) => [v, d]).sort((a, b) => b[0] - a[0]).slice(0, 3).map((x) => x[1]);
   return { idx, mean };
 }
-let RSCALE = 1;            // normalizes the PCA projection to a readable radius
-let rb3 = [0, 0, 1];      // refusal direction within the 3 display axes (unit)
 function buildResidual() {
   clearGroup(RS); dots = [];
-  for (let i = 0; i < T; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), new THREE.MeshStandardMaterial({ color: 0x62ffb3, emissive: 0x163c2c, roughness: 0.4 })); RS.add(m); dots.push(m); }
-  RS.add(at(makeLabel("residual stream", "#62ffb3", "#62ffb3"), new THREE.Vector3(0, 4.2, 0), new THREE.Vector3(4.6, 1.0, 1)));
+  for (let i = 0; i < T; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), new THREE.MeshStandardMaterial({ color: 0x62ffb3, emissive: 0x163c2c, roughness: 0.4 })); RS.add(m); dots.push(m); }
+  RS.add(at(makeLabel("residual stream", "#62ffb3", "#62ffb3"), new THREE.Vector3(0, 7, 0), new THREE.Vector3(6, 1.4, 1)));
   basis = topBasis(hiddenByLayer[LAYERS - 1]);
   const { idx, mean } = basis;
-  // scale so the widest spread maps to ~2.6 world units (keeps the cloud at its label)
   let spread = 1e-6;
   for (const r of hiddenByLayer[LAYERS - 1]) for (let k = 0; k < 3; k++) spread = Math.max(spread, Math.abs(r[idx[k]] - mean[idx[k]]));
-  RSCALE = 2.6 / spread;
-  // refusal direction inside the 3 display axes, unit-normalized (so the projection is correct)
+  RSCALE = 5.0 / spread;
   rb3 = [refusal[idx[0]], refusal[idx[1]], refusal[idx[2]]];
   const rn = Math.hypot(rb3[0], rb3[1], rb3[2]) || 1; rb3 = rb3.map((v) => v / rn);
-  const a = new THREE.Vector3(rb3[0], rb3[1], rb3[2]).multiplyScalar(3.0);
+  const a = new THREE.Vector3(rb3[0], rb3[1], rb3[2]).multiplyScalar(6.0);
   const lg = new THREE.BufferGeometry().setFromPoints([a.clone().negate(), a]);
-  refLine = new THREE.Line(lg, new THREE.LineDashedMaterial({ color: 0xff2e97, dashSize: 0.3, gapSize: 0.2, transparent: true, opacity: 0.85 })); refLine.computeLineDistances(); RS.add(refLine);
+  refLine = new THREE.Line(lg, new THREE.LineDashedMaterial({ color: 0xff2e97, dashSize: 0.5, gapSize: 0.35, transparent: true, opacity: 0.85 })); refLine.computeLineDistances(); RS.add(refLine);
 }
 function placeResidual(L) {
   const rows = hiddenByLayer[L], { idx, mean } = basis;
   for (let i = 0; i < T; i++) {
     let p = [(rows[i][idx[0]] - mean[idx[0]]) * RSCALE, (rows[i][idx[1]] - mean[idx[1]]) * RSCALE, (rows[i][idx[2]] - mean[idx[2]]) * RSCALE];
-    if (abliterate) { const dt = p[0] * rb3[0] + p[1] * rb3[1] + p[2] * rb3[2]; p = [p[0] - dt * rb3[0], p[1] - dt * rb3[1], p[2] - dt * rb3[2]]; }
+    if (abliterate) { const dt = p[0]*rb3[0]+p[1]*rb3[1]+p[2]*rb3[2]; p = [p[0]-dt*rb3[0], p[1]-dt*rb3[1], p[2]-dt*rb3[2]]; }
     dots[i].position.lerp(new THREE.Vector3(p[0], p[1], p[2]), 0.15);
     dots[i].material.color.setHex(abliterate ? 0xff2e97 : 0x62ffb3);
   }
   if (refLine) refLine.material.opacity = abliterate ? 0.95 : 0.4;
 }
 
-// ---------- logit-lens readout ----------
+// ---------- a glowing compute-plane that rises through the stack ----------
+const plane = new THREE.Mesh(
+  new THREE.PlaneGeometry(T * COL_W + 6, 16).rotateX(-Math.PI / 2),
+  new THREE.MeshBasicMaterial({ color: 0x2be4ff, transparent: true, opacity: 0.06, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
+);
+scene.add(plane);
+
+// ---------- logit-lens readout (top of the stack) ----------
 let lensSprite = null;
 function showLens(L) {
-  if (lensSprite) { nodeGroup.remove(lensSprite); lensSprite.material.map.dispose(); lensSprite.material.dispose(); }
-  const tok = predict(hiddenByLayer[L][T - 1]);   // prediction for the LAST token
-  lensSprite = makeLabel("predict → " + tok, "#ffd166", "#ff9f5a");
-  lensSprite.scale.set(5.5, 1.2, 1);
-  lensSprite.position.set(0, yOfLayer(LAYERS - 1) + 1.6, 0);
-  nodeGroup.add(lensSprite);
+  if (lensSprite) { scene.remove(lensSprite); lensSprite.material.map.dispose(); lensSprite.material.dispose(); }
+  lensSprite = makeLabel("predict → " + predict(hiddenByLayer[L][T - 1]), "#ffd166", "#ff9f5a");
+  lensSprite.scale.set(8, 2, 1); lensSprite.position.set(0, TOP_Y + 5, 0);
+  scene.add(lensSprite);
 }
 
-// ---------- (re)build all ----------
-function rebuild() { initWeights(); forward(); buildScaffold(); buildHeatmap(); buildResidual(); buildArcs(0); paintHeatmap(0, activeHead); showLens(0); }
+// ---------- (re)build everything ----------
+function rebuild() { initWeights(); forward(); buildStack(); buildHeatmap(); buildResidual(); clearGroup(arcGroup); revealed = 0; buildArcs(0); paintHeatmap(0, activeHead); showLens(0); }
 
 // ---------- panel ----------
 let activeHead = 0;
@@ -295,23 +325,27 @@ onResize(renderer, camera);
 const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
 
-let curLayer = 0, layerT = 0;
-window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, attnRowSum: attnByLayer[0][0][T-1].reduce((a,b)=>a+b,0).toFixed(3), cloudR: Math.max(...dots.map(d => d.position.length())).toFixed(2) });
+let curLayer = 0, layerT = 0, revealed = 0, planeY = BASE_Y;
+window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, arcs: arcGroup.children.length, attnRowSum: attnByLayer[0][0][T-1].reduce((a,b)=>a+b,0).toFixed(3), cloudR: Math.max(...dots.map(d => d.position.length())).toFixed(2) });
 
 loop((dt) => {
   meter(dt);
   layerT += dt * layerSpeed;
-  if (layerT > 1.1) {                       // advance the forward pass one layer
+  if (layerT > 1.1) {                       // ascend one layer (the forward pass)
     layerT = 0; curLayer = (curLayer + 1) % LAYERS;
+    if (curLayer === 0) { clearGroup(arcGroup); }   // looped → start a fresh ascent
     buildArcs(curLayer); paintHeatmap(curLayer, activeHead); showLens(curLayer);
     layerEl.textContent = `${curLayer + 1}/${LAYERS}`;
   }
-  // subtle emphasis: active layer's arcs gently brighten (NO geometry bounce)
-  const k = 0.7 + 0.3 * Math.sin(performance.now() * 0.004);
-  arcGroup.children.forEach((a) => { a.material.opacity = Math.min(a.material.opacity, 0.95) * (0.85 + 0.15 * k); });
+  // the compute-plane glides up to the active layer
+  planeY += (yOfLayer(curLayer) - planeY) * Math.min(1, dt * 4);
+  plane.position.y = planeY;
+  // pulse the ACTIVE layer's arcs brighter; older revealed layers stay dim
+  const k = 0.6 + 0.4 * Math.sin(performance.now() * 0.005);
+  arcGroup.children.forEach((a) => { const active = a.userData.layer === curLayer; a.material.opacity = a.userData.baseOp * (active ? (0.7 + 0.5 * k) : 0.32); });
   placeResidual(curLayer);
-  HM.lookAt(camera.position);               // keep the heatmap facing you
-  RS.quaternion.copy(camera.quaternion);    // billboard the label group lightly
+  HM.lookAt(camera.position.x, HM.position.y, camera.position.z);  // bars face you, stay upright
+  RS.quaternion.copy(camera.quaternion);
   controls.update();
   renderer.render(scene, camera);
 });
