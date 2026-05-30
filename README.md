@@ -2,85 +2,90 @@
 
 > a vaporwave gallery of mathematical art — built to be filmed
 
-Five neon-soaked rooms, each carved from a single formula and a GPU.
+Fifteen neon-soaked rooms, each carved from a single formula and a GPU.
 No framework, no build step — just serve the folder and open it.
 
-Every room has a **REC** button (or press **R**): it captures the live canvas to a
-downloadable `.webm` so you can grab the "plays" and share the clips. That's the whole
-point — hit record, let the math run, walk away with a video.
+It's a **kiosk**, not a website. You boot straight into a room; there's no menu.
 
-| Room | What it is | Tech |
-|------|-----------|------|
-| **01 · 曲面 Graphed Surfaces** | Type `z = f(x, y, t)` and it blooms into a living, neon-shaded surface over a grid floor. Use `t` to animate. | Three.js + [math.js] |
-| **02 · 無限 The Mandelbulb** | A 3D fractal raymarched entirely on the GPU. Orbit/zoom into infinite detail, painted in pink + cyan. | Three.js + raw GLSL |
-| **03 · 混沌 Strange Attractors** | Lorenz, Aizawa, Thomas, Halvorsen, Dadras — chaotic ODEs drawn as glowing ribbons. | Three.js + RK4 |
-| **04 · 生命 3D Game of Life** | Conway's Life in *three dimensions* — Carter Bays' 26-neighbor rules (5766, 4555, pyroclastic, clouds, crystal) as hollow neon voxel shells. Rule 5766 has 3D gliders. | Three.js InstancedMesh |
-| **05 · 故障 Pixel Sort** | A generative neon field torn apart and re-ordered pixel by pixel — Kim Asendorf's glitch technique. | Canvas2D pixel sorting |
+```
+←  →    walk between rooms
+↑  ↓    cycle the variation inside the room (preset / rule / system / algorithm)
+M       show / hide the interface (hidden by default)
+R       record the live canvas to a video  ·  1–5 record a timed clip (10/15/20/30s)
+Esc     jump back to the first room
+```
 
-The whole thing wears a CRT scanline + grain overlay, a sliced retro sun, and an
-outrun grid horizon. Type is three retro voices: **Monoton** (the neon sign),
-**DotGothic16** (pixel headings + 日本語), and **VT323** (the terminal).
+The **R** recorder prefers **MP4** so clips upload straight to X / Instagram (Safari makes
+real `.mp4`; Chrome/Firefox fall back to `.webm`). The duration picker auto-stops and
+downloads. That's the whole point — hit record, let the math run, walk away with a clip.
 
-### About 3D Game of Life
+## The rooms
 
-Standard Conway is 2D with 8 neighbors (rule *B3/S23*). In 3D each cell has **26**
-neighbors, so rules are renamed `survive / born` ranges. Carter Bays found the canonical
-3D-Life analogue **5766** (survive 5–7, born 6) in the 1980s — it even sustains gliders.
-The other rules here come from the *Visions of Chaos* catalogue.
+| # | Room | What it is | Tech |
+|---|------|-----------|------|
+| 01 · 曲面 | **Graphed Surfaces** | Type `z = f(x,y,t)`; it blooms into a living surface. | Three.js + [math.js] |
+| 02 · 無限 | **The Mandelbulb** | A 3D fractal raymarched per-pixel on the GPU. | raw GLSL |
+| 03 · 混沌 | **Strange Attractors** | Lorenz, Aizawa, Thomas… chaotic ODEs as glowing ribbons. | RK4 |
+| 04 · 位相 | **Hamiltonian Phase Space** | Energy surface + trajectories + phase-portrait shadow; q and p evolve together. | RK4 |
+| 05 · 流れ | **3D Vector Field** | Thousands of particles advected through `V(x,y,z)` as speed-colored streaks. | particles |
+| 06 · 勾配 | **Gradient Descent** | SGD, momentum, Adam **and simulated annealing** race down a 3D loss landscape — watch annealing tunnel out of local minima. | optimizers |
+| 07 · 生命 | **3D Game of Life** | Conway in 3D — Carter Bays' 26-neighbor rules as hollow voxel shells. | InstancedMesh |
+| 08 · 反応 | **Reaction-Diffusion** | Gray-Scott Turing patterns — coral, mitosis, mazes — alive on the GPU. | GLSL ping-pong |
+| 09 · 次元 | **Flatland** | A 4D tesseract turning through 3-space, with a 2D cross-section slice. | 4D projection |
+| 10 · 整列 | **Sorting** | Bubble/quick/heap… racing across a neon bar landscape, looping forever. | generators |
+| 11 · 立体整列 | **3D Sorting** | A cube of voxels on a Morton curve, shuffled then sorted into a 3D gradient. | InstancedMesh |
+| 12 · 反転 | **Sphere Eversion** | Turning a sphere inside-out; front/back colored so you see inside become outside. | front-face shader |
+| 13 · 幻覚 | **EarthBound Backgrounds** | MOTHER 2 battle BGs — HDMA sine-row distortion + palette cycling, auto-randomizing. | GLSL |
+| 14 · 故障 | **Pixel Sort** | A neon field torn apart and re-ordered pixel by pixel. | Canvas2D |
+| 15 · 注意 | **The Transformer** | *Attention Is All You Need* — multi-head attention arcs pulsing layer by layer, plus a live **abliteration** toggle that removes the refusal direction from the residual stream. | toy QKV |
+
+The whole thing wears a CRT scanline + grain overlay, a sliced retro sun, and an outrun
+grid horizon. Type is three retro voices: **Monoton** (the neon sign), **DotGothic16**
+(pixel headings + 日本語), and **VT323** (the terminal).
 
 ## Run it
 
-It uses ES-module import maps, so it must be **served over HTTP** (opening files via
-`file://` won't work — browsers block module imports there).
+ES-module import maps, so it must be **served over HTTP** (`file://` is blocked):
 
 ```bash
 python3 -m http.server 8000
-# open http://localhost:8000
+# open http://localhost:8000  → it redirects straight into room 01
 ```
 
-Any static server works (`npx serve .`, `php -S localhost:8000`, …). Three.js r169 and
-math.js load from a CDN via the import map in each HTML file — nothing to install.
+Three.js r169 and math.js load from CDN via the import map in each page — nothing to install.
+
+## Notes on the math
+
+- **Three.js isn't a math library** — it's the renderer (a WebGL wrapper). The math is what
+  you stack on top: you/math.js evaluate functions, Three.js turns numbers into meshes/lines/
+  points, and **GLSL fragment shaders** do the per-pixel heavy lifting (fractal, reaction-
+  diffusion, EarthBound).
+- **3D Game of Life**: 2D Conway is *B3/S23* (8 neighbors). In 3D each cell has **26**
+  neighbors, so rules are `survive/born` ranges; Carter Bays' **5766** is the canonical 3D
+  analogue and even has gliders.
+- **3D sorting**: yes, you can sort a 3D array — you sort the linear ordering a space-filling
+  (Morton) curve imposes on the cube, so sorted-index continuity becomes a smooth 3D gradient.
+- **Abliteration** (room 15): refusal in an LLM is mediated by ~one direction in the residual
+  stream; abliteration projects hidden states onto the plane orthogonal to it. Here it's a toy
+  3D cloud you watch collapse off the refusal axis — the geometry of the real technique.
 
 ## How it's wired
 
 ```
-index.html              gallery landing (neon outrun-terrain hero)
-assets/base.css         the whole vaporwave design system + CRT overlay + REC pill
-src/common.js           shared helpers: renderer, loop, FPS, neon ramp, grid floor,
-                        sliced sun, CRT injector, and the .webm video recorder
-src/hero.js             landing-page hero terrain
-pieces/parametric.html ─┐  src/parametric.js   room 01
-pieces/fractal.html    ─┤  src/fractal.js      room 02  (Mandelbulb DE in GLSL)
-pieces/attractor.html  ─┤  src/attractor.js    room 03
-pieces/life.html       ─┤  src/life.js         room 04  (3D cellular automaton)
-pieces/pixelsort.html  ─┘  src/pixelsort.js    room 05  (after kim asendorf)
+index.html              redirects into pieces/parametric.html (no landing page)
+assets/base.css         vaporwave design system + CRT overlay + REC + kiosk-nav styles
+src/common.js           renderer, loop, FPS, neon ramp, grid, sun, CRT, recorder,
+                        kiosk navigation (← → rooms, ↑ ↓ variation, M, R), setVariantCycler
+pieces/<room>.html  ─┐
+src/<room>.js       ─┘  one pair per room (15 rooms)
 ```
 
-### The honest tech note
+## Roadmap
 
-Three.js isn't a "math library" — it's the **renderer** (a WebGL wrapper). The
-mathematics comes from three places stacked on top of it:
-
-1. **You / math.js** — evaluate the functions (room 01 parses arbitrary expressions).
-2. **Three.js** — turn the numbers into meshes, lines, and points (rooms 01 & 03).
-3. **GLSL fragment shaders** — the heavy artillery: room 02's fractal is computed
-   per-pixel on the GPU with a signed-distance raymarcher.
-
-Room 04 (3D Life) is a CPU cellular automaton drawn with one `InstancedMesh`; interior
-cells are culled so you see hollow shells. Room 05 leaves 3D entirely: a CPU image
-operation (pixel sorting) on a `<canvas>`, the family behind Kim Asendorf's *ASDF Pixel
-Sort* and *Mountain Tour*.
-
-## Ideas to take it further
-
-- Room 01: add true `u,v` parametric mode (Klein bottles, supershapes), not just height fields.
-- Room 02: swap the Mandelbulb DE for Julia sets, Menger sponges, or Apollonian gaskets.
-- Room 03: render the attractor as a moving "comet" trail instead of a full ribbon.
-- Room 04: GPU the automaton (3D texture + compute) to push the grid past 30³.
-- Room 05: feed a real photo into the sorter; add datamosh / RGB-shift passes.
-- More rooms on the wishlist: **sphere eversion** (turning a sphere inside-out),
-  **3D vector fields / calculus planes**, and **sorting-algorithm visualizers**.
-- Ship it: graduate to a Vite + TypeScript project and deploy to Vercel.
+- GPU the 3D automaton (3D texture) to push past 30³.
+- Real-image input for the pixel sorter; datamosh / RGB-shift passes.
+- A "cinematic auto-tour" mode that visits every room hands-free for long recordings.
+- Graduate to Vite + TypeScript and deploy to Vercel.
 
 [math.js]: https://mathjs.org
 

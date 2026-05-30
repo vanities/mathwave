@@ -454,6 +454,13 @@ body.warping { opacity: 0; }
 .kiosk-toast b { color: var(--accent-2); }
 .kiosk-toast.fade { opacity: 0; }
 
+/* inline checkbox row in panels */
+.check {
+  display: flex; align-items: center; gap: 0.55rem; cursor: pointer;
+  color: var(--muted); text-transform: none; letter-spacing: 0.02em; font-size: 0.95rem;
+}
+.check input { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; }
+
 /* the ↑/↓ variation flash — centered, bigger, magenta */
 .kiosk-toast.variant {
   top: 50%; bottom: auto; transform: translate(-50%, -50%);

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reaction-Diffusion 反応 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Gray-Scott reaction-diffusion on the GPU — coral, mitosis, mazes. Alien Turing patterns that look alive." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">growing cultures</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Reaction-<em>Diffusion</em></div>
+      <div class="s">08 · 反応 gray-scott</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>反応 · A + 2B → 3B</h3>
+    <div class="field">
+      <label>pattern <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="rate">sim speed <span class="val" data-val="rate"></span></label>
+      <input type="range" id="rate" min="2" max="24" step="1" value="12" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="reseed">reseed</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="presetname">coral</b></div>
+    <div>↑↓ pattern</div>
+  </div>
+
+  <div class="hint">↑↓ <b>pattern</b> · <b>reseed</b> for a new culture · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/reaction.js"></script>
+</body>
+</html>

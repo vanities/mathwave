@@ -172,10 +172,26 @@ liftVeil();
 onResize(renderer, camera, (w, h) => uniforms.uResolution.value.set(w, h));
 const meter = fpsMeter(document.getElementById("fps"));
 
-let clock = 0;
+// randomize: slowly drift the three knobs with incommensurate LFOs (default on).
+// Driving the sliders (not just uniforms) keeps the UI in sync and reuses bindRange.
+const randomizeEl = document.getElementById("randomize");
+function setSlider(id, v) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = v;
+  el.dispatchEvent(new Event("input"));
+}
+
+let clock = 0, rnd = 0;
 loop((dt) => {
   meter(dt);
   if (playing) clock += dt;
+  rnd += dt;
+  if (randomizeEl && randomizeEl.checked) {
+    setSlider("speed", (0.7 + 0.6 * Math.sin(rnd * 0.07)).toFixed(2));
+    setSlider("amp",   (0.55 + 0.4 * Math.sin(rnd * 0.043 + 1.3)).toFixed(2));
+    setSlider("freq",  Math.round(9 + 6 * Math.sin(rnd * 0.031 + 2.1)));
+  }
   uniforms.uTime.value = clock;
   renderer.render(scene, camera);
 });

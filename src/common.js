@@ -286,8 +286,10 @@ window.addEventListener("load", () => {
 // ============================================================
 (function kioskNav() {
   const ROOMS = [
-    "parametric.html", "fractal.html", "attractor.html", "life.html",
-    "vectorfield.html", "earthbound.html", "sorting.html", "eversion.html", "pixelsort.html",
+    "parametric.html", "fractal.html", "attractor.html", "hamiltonian.html",
+    "vectorfield.html", "gradient.html", "life.html", "reaction.html",
+    "flatland.html", "sorting.html", "sorting3d.html", "eversion.html",
+    "earthbound.html", "pixelsort.html", "transformer.html",
   ];
   const curFile = location.pathname.split("/").pop();
   const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };

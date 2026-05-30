@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flatland 次元 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Dimensions, after Abbott's Flatland — a 4D tesseract rotating through 3-space, with a 2D cross-section showing what a lower being perceives." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">ascending dimensions</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Flatland <em>次元</em></div>
+      <div class="s">09 · dimensions 1 → 4</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>次元 · {-1,1}ⁿ</h3>
+    <div class="field">
+      <label>dimension <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="dims"></div>
+    </div>
+    <div class="field">
+      <label for="speed">rotation speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="slice">slice plane</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        The <span style="color:#62ffb3">green dots</span> are the cross-section — what a being one dimension down sees as the shape passes through its world.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="dimname">tesseract</b></div>
+    <div>↑↓ dimension</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>dimension</b> · the 4D <b>tesseract</b> turns inside-out · <b>R</b> to record</div>
+
+  <script type="module" src="../src/flatland.js"></script>
+</body>
+</html>
