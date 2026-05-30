@@ -32,11 +32,15 @@ const top = new THREE.DirectionalLight(0xfff1dd, 0.45); top.position.set(0, 26, 
 addGrid(scene, { size: 40, divisions: 20, y: -9 });
 addSun(scene, { scale: 40, position: [0, 6, -64] });
 
-// ---------- the cube + 3D Hilbert curve ----------
-const ORDER = 4;              // 2^4 = 16 per side → 4096 cells
+// ---------- the cube + space-filling curve ----------
+// Exploded on purpose: GAP > VOX leaves air between voxels so you can see INTO
+// the cube and watch the interior reorder (a solid packed cube hides the sort).
+const ORDER = 3;             // 2^3 = 8 per side → 512 cells (watchable + see-through)
 const S = 1 << ORDER;
 const COUNT = S * S * S;
-const CELL = 0.62;
+const GAP = 1.55;            // spacing between cells
+const VOX = 0.7;            // voxel size (< GAP → visible gaps)
+const CELL = GAP;            // (curve layout uses spacing)
 
 // Space-filling layout: Morton (Z-order) curve — interleave the bits of the
 // linear index across x/y/z. Continuity of sorted index along Z-order still
@@ -66,8 +70,10 @@ function shuffle() {
 }
 
 // ---------- instanced voxels ----------
-const geo = new THREE.BoxGeometry(CELL * 0.86, CELL * 0.86, CELL * 0.86);
-const mat = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.2 });
+// Unlit material so each voxel's COLOR is exactly its value, readable from any
+// angle (lit interior faces would otherwise go dark and hide the data).
+const geo = new THREE.BoxGeometry(VOX, VOX, VOX);
+const mat = new THREE.MeshBasicMaterial({});
 const mesh = new THREE.InstancedMesh(geo, mat, COUNT);
 mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
 scene.add(mesh);
@@ -101,12 +107,12 @@ function* heap(a){ const n=a.length; function* sift(s,e){ let r=s; while(true){ 
 function* shell(a){ const n=a.length; for(let g=n>>1;g>0;g>>=1){ for(let i=g;i<n;i++){ let j=i; while(j>=g&&a[j-g]>a[j]){const t=a[j-g];a[j-g]=a[j];a[j]=t; yield j; j-=g;} } } }
 
 const ALGOS = [["bubble",bubble],["odd-even",odd_even],["shell",shell],["quick",quick],["heap",heap]];
-let algoIdx = 3; // quick by default (fast over 4096)
+let algoIdx = 3; // quick by default
 let gen = null;
-let phase = "sort", hold = 0;
+let phase = "shuffled", hold = 0;   // start in a visible shuffled hold, THEN sort
 
 function start(i) {
-  algoIdx = i; shuffle(); gen = ALGOS[i][1](arr); phase = "sort"; hold = 0; touch = -1;
+  algoIdx = i; shuffle(); gen = ALGOS[i][1](arr); phase = "shuffled"; hold = 0; touch = -1;
   nameEl.textContent = ALGOS[i][0];
   chips.forEach((c, k) => c.classList.toggle("active", k === i));
   paint();
@@ -123,7 +129,7 @@ const chips = ALGOS.map(([label], i) => {
   wrap.appendChild(b);
   return b;
 });
-let speed = 220;
+let speed = 45;
 bindRange("speed", (v) => { speed = v; }, (v) => `${Math.round(v)}/f`);
 document.getElementById("shuffle").addEventListener("click", () => start(algoIdx));
 
@@ -138,7 +144,11 @@ const doneEl = document.getElementById("done");
 
 loop((dt) => {
   meter(dt);
-  if (phase === "sort") {
+  if (phase === "shuffled") {           // hold on the chaos so you SEE it shuffled
+    hold += dt;
+    doneEl.textContent = "shuffled";
+    if (hold > 1.2) { phase = "sort"; hold = 0; }
+  } else if (phase === "sort") {
     let budget = Math.round(speed);
     let r;
     while (budget-- > 0) { r = gen.next(); if (r.done) { phase = "hold"; touch = -1; break; } touch = r.value; }
@@ -146,7 +156,7 @@ loop((dt) => {
     doneEl.textContent = phase === "hold" ? "sorted ✓" : "sorting…";
   } else {
     hold += dt;
-    if (hold > 2.2) start(algoIdx);
+    if (hold > 2.2) start(algoIdx);     // reshuffle and run again
   }
   controls.update();
   renderer.render(scene, camera);
