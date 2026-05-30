@@ -176,6 +176,7 @@ const ROOMS = [
   "bloch.html", "wolfram.html", "physarum.html",
   "chladni.html", "kuramoto.html", "newton.html", "mandelbrot.html",
   "blackhole.html", "phyllotaxis.html", "dla.html",
+  "attractorsong.html",
 ];
 
 // ============================================================
@@ -240,6 +241,10 @@ const ROOMS = [
       pendingName = opts.name || null;
       pendingThen = opts.then || null;
       const stream = canvas.captureStream(60);
+      // if a sonified room has audio running, fold its sound into the recording
+      try {
+        if (window.__mwAudioStream) { const a = window.__mwAudioStream(); if (a) a.getAudioTracks().forEach((t) => stream.addTrack(t)); }
+      } catch (e) {}
       const mime = pickMime();
       try {
         recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 12_000_000 } : undefined);

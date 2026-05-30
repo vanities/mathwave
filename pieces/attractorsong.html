@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attractor Song 共鳴 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Chaos you can HEAR — a strange attractor's trajectory mapped to sound (pitch/filter/pan), with the live audio waveform drawn as a neon oscilloscope." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">tuning the chaos</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Attractor <em>Song</em></div>
+      <div class="s">37 · 共鳴 chaos you can hear</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>共鳴 · x→pitch y→filter z→pan</h3>
+    <div class="field">
+      <label>attractor <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="systems"></div>
+    </div>
+    <div class="field">
+      <label for="speed">tempo <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0.1" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        The playhead flies the trajectory; its x/y/z become pitch, brightness and pan — quantized to a pentatonic scale so chaos sounds <b>musical</b>. The green wave is the real audio. <b>Click / press S</b> for sound.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="sysname">lorenz</b> · <b id="hz">— muted —</b></div>
+    <div>↑↓ attractor</div>
+  </div>
+
+  <div class="hint">↑↓ <b>attractor</b> · <b>click</b> to start sound · <b>S</b> mute · <b>R</b> records audio+video</div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/attractorsong.js"></script>
+</body>
+</html>
