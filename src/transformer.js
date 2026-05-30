@@ -140,9 +140,9 @@ const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
 // rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
 const cubeGeo = new THREE.BoxGeometry(CW * 0.74, CW * 0.74, CW * 0.74);
-// non-metallic + emissive carries the per-cell hue (metalness washed colors to grey);
-// emissive multiplies the white uniform by the vertex color so each cell glows its value
-const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.0, emissive: 0xffffff, emissiveIntensity: 0.5, vertexColors: true });
+// unlit, vertex-colored: each cube renders EXACTLY its value-hue (no white emissive
+// or metallic reflection to wash it out). Bloom adds glow from the color's own brightness.
+const cubeMat = new THREE.MeshBasicMaterial({ vertexColors: true });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
 const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);
