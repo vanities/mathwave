@@ -209,13 +209,14 @@ function buildHeatmap() {
     hmMesh.setMatrixAt(i * T + j, d.matrix);
   }
   HM.add(hmMesh);
-  HM.add(at(makeLabel("attention  AᵢⱼL", "#2be4ff", "#2be4ff"), new THREE.Vector3(0, (T / 2) * CELLW + 0.7, 0), new THREE.Vector3(4.2, 1.0, 1)));
+  HM.add(at(makeLabel("attention · causal", "#2be4ff", "#2be4ff"), new THREE.Vector3(0, (T / 2) * CELLW + 0.7, 0), new THREE.Vector3(4.4, 1.0, 1)));
 }
 const hmColor = new THREE.Color();
 function paintHeatmap(L, head) {
   const A = attnByLayer[L][head];
   for (let i = 0; i < T; i++) for (let j = 0; j < T; j++) {
-    const c = ramp(0.05 + 0.95 * A[i][j]); hmColor.setRGB(c[0], c[1], c[2]);
+    if (j > i) { hmColor.setRGB(0.03, 0.02, 0.07); }          // causal mask → dark (shows the lower-triangular staircase)
+    else { const c = ramp(0.12 + 0.88 * A[i][j]); hmColor.setRGB(c[0], c[1], c[2]); }
     hmMesh.setColorAt(i * T + j, hmColor);
   }
   hmMesh.instanceColor.needsUpdate = true;
@@ -232,22 +233,31 @@ function topBasis(rows) {                  // crude: pick 3 most-spread coordina
   const idx = varc.map((v, d) => [v, d]).sort((a, b) => b[0] - a[0]).slice(0, 3).map((x) => x[1]);
   return { idx, mean };
 }
+let RSCALE = 1;            // normalizes the PCA projection to a readable radius
+let rb3 = [0, 0, 1];      // refusal direction within the 3 display axes (unit)
 function buildResidual() {
   clearGroup(RS); dots = [];
-  for (let i = 0; i < T; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12), new THREE.MeshStandardMaterial({ color: 0x62ffb3, emissive: 0x163c2c, roughness: 0.4 })); RS.add(m); dots.push(m); }
+  for (let i = 0; i < T; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 12), new THREE.MeshStandardMaterial({ color: 0x62ffb3, emissive: 0x163c2c, roughness: 0.4 })); RS.add(m); dots.push(m); }
   RS.add(at(makeLabel("residual stream", "#62ffb3", "#62ffb3"), new THREE.Vector3(0, 4.2, 0), new THREE.Vector3(4.6, 1.0, 1)));
   basis = topBasis(hiddenByLayer[LAYERS - 1]);
-  const a = new THREE.Vector3(refusal[basis.idx[0]], refusal[basis.idx[1]], refusal[basis.idx[2]]).normalize().multiplyScalar(3.4);
+  const { idx, mean } = basis;
+  // scale so the widest spread maps to ~2.6 world units (keeps the cloud at its label)
+  let spread = 1e-6;
+  for (const r of hiddenByLayer[LAYERS - 1]) for (let k = 0; k < 3; k++) spread = Math.max(spread, Math.abs(r[idx[k]] - mean[idx[k]]));
+  RSCALE = 2.6 / spread;
+  // refusal direction inside the 3 display axes, unit-normalized (so the projection is correct)
+  rb3 = [refusal[idx[0]], refusal[idx[1]], refusal[idx[2]]];
+  const rn = Math.hypot(rb3[0], rb3[1], rb3[2]) || 1; rb3 = rb3.map((v) => v / rn);
+  const a = new THREE.Vector3(rb3[0], rb3[1], rb3[2]).multiplyScalar(3.0);
   const lg = new THREE.BufferGeometry().setFromPoints([a.clone().negate(), a]);
   refLine = new THREE.Line(lg, new THREE.LineDashedMaterial({ color: 0xff2e97, dashSize: 0.3, gapSize: 0.2, transparent: true, opacity: 0.85 })); refLine.computeLineDistances(); RS.add(refLine);
 }
 function placeResidual(L) {
-  const rows = hiddenByLayer[L], { idx, mean } = basis, sc = 1.1;
-  const rb = [refusal[idx[0]], refusal[idx[1]], refusal[idx[2]]];
+  const rows = hiddenByLayer[L], { idx, mean } = basis;
   for (let i = 0; i < T; i++) {
-    let p = [rows[i][idx[0]] - mean[idx[0]], rows[i][idx[1]] - mean[idx[1]], rows[i][idx[2]] - mean[idx[2]]];
-    if (abliterate) { const dt = p[0] * rb[0] + p[1] * rb[1] + p[2] * rb[2]; p = [p[0] - dt * rb[0], p[1] - dt * rb[1], p[2] - dt * rb[2]]; }
-    dots[i].position.lerp(new THREE.Vector3(p[0] * sc, p[1] * sc, p[2] * sc), 0.15);
+    let p = [(rows[i][idx[0]] - mean[idx[0]]) * RSCALE, (rows[i][idx[1]] - mean[idx[1]]) * RSCALE, (rows[i][idx[2]] - mean[idx[2]]) * RSCALE];
+    if (abliterate) { const dt = p[0] * rb3[0] + p[1] * rb3[1] + p[2] * rb3[2]; p = [p[0] - dt * rb3[0], p[1] - dt * rb3[1], p[2] - dt * rb3[2]]; }
+    dots[i].position.lerp(new THREE.Vector3(p[0], p[1], p[2]), 0.15);
     dots[i].material.color.setHex(abliterate ? 0xff2e97 : 0x62ffb3);
   }
   if (refLine) refLine.material.opacity = abliterate ? 0.95 : 0.4;
@@ -286,7 +296,7 @@ const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
 
 let curLayer = 0, layerT = 0;
-window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, attnRowSum: attnByLayer[0][0][T-1].reduce((a,b)=>a+b,0).toFixed(3) });
+window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, attnRowSum: attnByLayer[0][0][T-1].reduce((a,b)=>a+b,0).toFixed(3), cloudR: Math.max(...dots.map(d => d.position.length())).toFixed(2) });
 
 loop((dt) => {
   meter(dt);
