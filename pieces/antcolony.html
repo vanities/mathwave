@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ant Colony 蟻 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Ant Colony Optimization (Dorigo) on a Traveling-Salesman graph — ants lay pheromone on the edges they walk, short tours get reinforced, and the colony converges on a near-optimal loop. Trail brightness = pheromone." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">laying pheromone trails</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Ant Colony <em>蟻</em></div>
+      <div class="s">ACO · τ<sup>α</sup>·η<sup>β</sup> · shortest tour</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>蟻 · pheromone · evaporate · deposit</h3>
+    <div class="field">
+      <label>colony <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="beta">heuristic β <span class="val" data-val="beta"></span></label>
+      <input type="range" id="beta" min="0" max="6" step="0.1" value="3.5" />
+    </div>
+    <div class="field">
+      <label for="rho">evaporation ρ <span class="val" data-val="rho"></span></label>
+      <input type="range" id="rho" min="0.01" max="0.4" step="0.01" value="0.12" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reseed">reseed</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Each ant picks its next city with P ∝ τ<sup>α</sup>·η<sup>β</sup> (η = 1/dist). Short tours <b>deposit</b> more pheromone; every edge <b>evaporates</b>. Bright edges = strong trails; the <b style="color:#ff4fd8">magenta loop</b> is the best tour.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="mc">22</b> cities · iter <b id="iterc">0</b></div>
+    <div>best <b id="blen">–</b></div>
+    <div>↑↓ colony</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>colony</b> · watch the <b>best tour</b> shrink · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/antcolony.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hill Climbing 登山 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Four local-search climbers — steepest-ascent, stochastic, random-restart, simulated annealing — race up a 3D fitness landscape. Watch greedy search get stuck on local peaks while annealing and restarts find the global maximum." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">climbing</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Hill <em>Climbing</em></div>
+      <div class="s">登山 · local search · local vs global optimum</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>登山 · argmax f(x, y)</h3>
+    <div class="field">
+      <label>landscape <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="landscapes"></div>
+    </div>
+    <div class="field">
+      <label for="speed">step speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="restart">restart</button>
+      <button class="btn" id="reset">reset view</button>
+    </div>
+    <div class="field">
+      <p class="muted" id="legend" style="font-size:0.9rem; line-height:1.6; margin:0.2rem 0 0; letter-spacing:0"></p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div id="best"></div>
+    <div>↑↓ landscape · ★ global</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>landscape</b> · greedy gets <b>stuck</b> on local peaks; <b>annealing</b> &amp; <b>restart</b> find the global · press <b>R</b></div>
+
+  <script type="module" src="../src/hillclimb.js"></script>
+</body>
+</html>

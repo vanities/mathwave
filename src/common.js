@@ -181,6 +181,7 @@ const ROOMS = [
   "wavefunction.html", "lbm.html", "sandpile.html", "ripple.html", "cloth.html",
   "lsystem.html", "hyperbolic.html", "apollonian.html", "qjulia.html", "primes.html",
   "nca.html", "som.html", "spiking.html", "hopfield.html", "rl.html",
+  "hillclimb.html", "minimax.html", "genetic.html", "antcolony.html", "astar.html",
 ];
 
 // ============================================================

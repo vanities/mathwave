@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>A* Search 経路 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="A* best-first pathfinding over a grid of obstacles — g + h = f, an admissible heuristic pulls the frontier toward the goal. A* vs Dijkstra vs Greedy best-first." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">searching 経路</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">A* <em>Search</em></div>
+      <div class="s">経路 · f = g + h best-first</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>経路 · best-first search</h3>
+    <div class="field">
+      <label>algorithm <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="algos"></div>
+    </div>
+    <div class="field">
+      <label>maze</label>
+      <div class="preset-row" id="mazes"></div>
+    </div>
+    <div class="field">
+      <label for="speed">expansions / frame <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="4" max="80" step="1" value="30" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="conn">4-connected</button>
+      <button class="btn" id="newmaze">new maze</button>
+      <button class="btn" id="size">grid: 121</button>
+      <button class="btn" id="scheme">neon</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Pop the lowest <b>f = g + h</b>; <b>g</b> = cost so far, <b>h</b> = heuristic to goal. <b>A*</b> explores a narrow corridor; <b>Dijkstra</b> (h=0) spreads everywhere; <b>Greedy</b> (f=h) is fast but not optimal. <b>↑↓</b> switches.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="algoname">A*</b></div>
+    <div><b id="explored">0</b> explored</div>
+    <div>path <b id="pathlen">…</b></div>
+    <div>↑↓ algorithm</div>
+  </div>
+
+  <div class="hint">↑↓ <b>A* / Dijkstra / Greedy</b> · cycle <b>maze</b> · watch the heuristic pull · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/astar.js"></script>
+</body>
+</html>

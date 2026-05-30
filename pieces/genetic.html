@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Genetic Algo 遺伝 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="A genetic algorithm — a population of genomes evolving toward an optimum via selection, crossover, and mutation. Watch the swarm converge onto the global peak of a 3D fitness landscape." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <style>
+    /* fitness sparkline lives inside the panel */
+    #spark {
+      width: 100%;
+      height: 46px;
+      display: block;
+      margin-top: 4px;
+      background: rgba(8, 12, 18, 0.5);
+      border: 1px solid rgba(120, 200, 230, 0.18);
+      border-radius: 6px;
+    }
+    .spark-legend { font-size: 10px; letter-spacing: 0.04em; opacity: 0.8; margin-top: 3px; }
+    .spark-legend .best { color: #fac850; }
+    .spark-legend .avg { color: #5ab4d2; }
+  </style>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">seeding a population</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Genetic <em>Algo</em></div>
+      <div class="s">遺伝 · select · crossover · mutate</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>遺伝 · evolution</h3>
+    <div class="field">
+      <label>selection <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row"><span id="sel-name" class="val" style="width:auto;flex:1;text-align:left;opacity:.85">roulette</span></div>
+    </div>
+    <div class="field">
+      <label for="speed">gens / frame <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label for="mutate">mutation <span class="val" data-val="mutate"></span></label>
+      <input type="range" id="mutate" min="0.005" max="0.2" step="0.001" value="0.06" />
+    </div>
+    <div class="field">
+      <label>fitness</label>
+      <canvas id="spark" width="220" height="46"></canvas>
+      <div class="spark-legend"><span class="best">best</span> · <span class="avg">avg</span></div>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="gen">0</b> gen</div>
+    <div><b id="best">0.00</b> best</div>
+    <div>↑↓ selection</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>selection</b> · raise <b>mutation</b> · press <b>R</b> to record</div>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+  <script type="module" src="../src/genetic.js"></script>
+</body>
+</html>
