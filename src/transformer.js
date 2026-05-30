@@ -20,6 +20,9 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import {
   makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, ramp, reducedMotion, addGrid, addSun, setVariantCycler,
 } from "./common.js";
@@ -27,7 +30,7 @@ import {
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x0a0118, 0.0042);
+scene.fog = new THREE.FogExp2(0x07030f, 0.0052);   // deeper near-black so neon pops
 
 // ---------- model dims ----------
 const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
@@ -56,12 +59,19 @@ controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.4;
 controls.minDistance = 16; controls.maxDistance = 420;
 controls.target.set(MIDX, CY, 0);
 
-scene.add(new THREE.AmbientLight(0x3a2466, 1.0));
-const key = new THREE.DirectionalLight(0xfff1dd, 1.1); key.position.set(30, 50, 40); scene.add(key);
-const rim = new THREE.DirectionalLight(0x2be4ff, 0.7); rim.position.set(-30, 20, -25); scene.add(rim);
-const fill = new THREE.DirectionalLight(0xff2e97, 0.5); fill.position.set(20, -10, 30); scene.add(fill);
-addGrid(scene, { size: 220, divisions: 44, y: -1 });
+scene.add(new THREE.AmbientLight(0x2a1a52, 0.85));
+const key = new THREE.DirectionalLight(0xfff1dd, 0.9); key.position.set(30, 50, 40); scene.add(key);
+const rim = new THREE.DirectionalLight(0x2be4ff, 0.8); rim.position.set(-30, 20, -25); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xff2e97, 0.55); fill.position.set(20, -10, 30); scene.add(fill);
+addGrid(scene, { size: 260, divisions: 52, y: -1 });
 addSun(scene, { scale: 64, position: [MIDX, CY + 26, -240] });
+
+// ---------- bloom: the single biggest aesthetic upgrade for neon-on-black ----------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.7, 0.0);
+bloom.strength = 1.15; bloom.radius = 0.85; bloom.threshold = 0.0;
+composer.addPass(bloom);
 
 // ---------- deterministic RNG + linear algebra ----------
 let seedSalt = 7;
@@ -128,8 +138,11 @@ const labelGroup = new THREE.Group(); scene.add(labelGroup);
 const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop(); c.geometry && c.geometry.dispose(); c.material && (c.material.map && c.material.map.dispose(), c.material.dispose()); G.remove(c); } };
 
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
-const cubeGeo = new THREE.BoxGeometry(CW * 0.78, CW * 0.78, CW * 0.78);
-const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.2 });
+// rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
+const cubeGeo = new THREE.BoxGeometry(CW * 0.74, CW * 0.74, CW * 0.74);
+// vertexColors drive BOTH diffuse and emissive (emissive multiplies the white
+// emissive uniform by the per-vertex color), so each cell self-glows in its own hue.
+const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.3, metalness: 0.3, emissive: 0xffffff, emissiveIntensity: 0.35, vertexColors: true });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
 const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);
@@ -278,7 +291,7 @@ setVariantCycler((d) => { ablBtn.click(); return abliterate ? "abliterated" : "i
 // ---------- boot ----------
 rebuild();
 liftVeil();
-onResize(renderer, camera);
+onResize(renderer, camera, (w, h) => composer.setSize(w, h));
 const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
 window.__diag = () => {
@@ -296,5 +309,5 @@ loop((dt) => {
   if (layerT > 1.0) { layerT = 0; curLayer = (curLayer + 1) % LAYERS; showLens(curLayer); if (layerEl) layerEl.textContent = `${curLayer + 1}/${LAYERS}`; }
   animateFlow(clock * 0.35);   // pulses of light travel along the attention arcs
   controls.update();
-  renderer.render(scene, camera);
+  composer.render();           // render through the bloom pipeline
 });
