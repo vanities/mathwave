@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Magnetosphere 磁気圏 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The solar wind meeting a planet's dipole magnetic field — charged particles deflected around the magnetopause, funneled into the aurora, and trapped in Van Allen belts. Lorentz force, Boris pusher." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">raising the shield</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="nbody.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Magneto<em>sphere</em></div>
+      <div class="s">磁気圏 · Lorentz F = qv×B</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>磁気圏 · boris pusher</h3>
+    <div class="field">
+      <label>weather <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="wind">solar wind <span class="val" data-val="wind"></span></label>
+      <input type="range" id="wind" min="4" max="30" step="1" value="14" />
+    </div>
+    <div class="field">
+      <label for="field">field strength <span class="val" data-val="field"></span></label>
+      <input type="range" id="field" min="0" max="5200" step="100" value="2200" />
+    </div>
+    <div class="field">
+      <label for="count">particles <span class="val" data-val="count"></span></label>
+      <input type="range" id="count" min="1500" max="9000" step="500" value="4500" data-fmt="k" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="au">0</b> aurora</div>
+    <div><b id="pname">–</b></div>
+    <div>↑↓ weather</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>weather</b> · try <b>solar storm</b> · drop <b>field</b> to 0 · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/magnetosphere.js"></script>
+</body>
+</html>
