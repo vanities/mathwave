@@ -3,6 +3,7 @@
 
 import * as THREE from "three";
 import { makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, reducedMotion } from "./common.js";
+import { makePS1Pipeline } from "./ps1.js";
 
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
@@ -116,8 +117,8 @@ const frag = /* glsl */ `
 
     // background: deep purple night + hot-pink bloom from near-misses
     float bgGrad = smoothstep(-0.7, 0.9, rd.y);
-    vec3 col = mix(vec3(0.04, 0.01, 0.10), vec3(0.12, 0.03, 0.24), bgGrad);
-    col += vec3(0.55, 0.12, 0.42) * glow;
+    vec3 col = mix(vec3(0.01, 0.015, 0.03), vec3(0.02, 0.05, 0.08), bgGrad);   // near-black, not purple
+    col += vec3(0.18, 0.45, 0.60) * glow;   // cool cyan halo (was hot-pink)
 
     if (hit) {
       vec3 p = ro + rd * t;
@@ -136,7 +137,7 @@ const frag = /* glsl */ `
       col = base * (amb + dif * 0.85) * ao;
       col += vec3(0.7, 0.95, 1.0) * spec * 0.85;   // neon cyan glint
       // depth haze toward the purple background
-      col = mix(col, vec3(0.06, 0.02, 0.14), smoothstep(2.5, FAR, t));
+      col = mix(col, vec3(0.015, 0.03, 0.05), smoothstep(2.5, FAR, t));
     }
 
     // gentle vignette + tonemap
@@ -151,6 +152,13 @@ const frag = /* glsl */ `
 
 const material = new THREE.ShaderMaterial({ uniforms, vertexShader: vert, fragmentShader: frag });
 scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
+
+// PS1 pass: render the raymarch into a 1/4-res target → nearest upscale + 4×4 Bayer
+// dither = chunky PS1 bulb. srgb:false because this shader already gamma-corrects its
+// own output. Bonus: marching 1/4 of the pixels is much cheaper, so it runs faster.
+const ps1 = makePS1Pipeline(renderer, scene, camera, { scale: 4, levels: 32, srgb: false });
+const syncRes = () => uniforms.uResolution.value.set(ps1.renderTarget.width, ps1.renderTarget.height);
+syncRes();
 
 // ---------- camera orbit (custom; the "camera" is just uCamPos) ----------
 let yaw = 0.6, pitch = 0.5, dist = 2.6;
@@ -217,7 +225,7 @@ document.getElementById("reset").addEventListener("click", () => {
 });
 
 // ---------- resize / loop ----------
-onResize(renderer, camera, (w, h) => uniforms.uResolution.value.set(w, h));
+onResize(renderer, camera, () => { ps1.setSize(); syncRes(); });
 
 const meter = fpsMeter(document.getElementById("fps"));
 let booted = false;
@@ -230,6 +238,6 @@ loop((dt, elapsed) => {
   uniforms.uPower.value = power;
   pwEl.textContent = power.toFixed(1);
   updateCam();
-  renderer.render(scene, camera);
+  ps1.render();
   if (!booted) { booted = true; liftVeil(); }
 });
