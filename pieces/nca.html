@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Neural CA 細胞 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="A living, self-healing organism grown by a continuous cellular automaton (Lenia) on the GPU. Click to wound it — it regenerates." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="veil">growing a cell</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="physarum.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Neural <em>CA</em></div>
+      <div class="s">細胞 · lenia self-healing life</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>細胞 · A′ = A + dt·G(K∗A)</h3>
+    <div class="field">
+      <label>species <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row">
+        <button class="btn" id="reseed">reseed</button>
+        <button class="btn" id="damage">damage</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="speed">sim speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="1" max="16" step="1" value="4" />
+    </div>
+    <div class="field">
+      <label for="growth">growth σ <span class="val" data-val="growth"></span></label>
+      <input type="range" id="growth" min="0.5" max="1.8" step="0.01" value="1.0" />
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="species">orbium</b></div>
+    <div>↑↓ species</div>
+  </div>
+
+  <div class="hint">click / drag the canvas to <b>wound</b> it — it heals · ↑↓ <b>species</b> · <b>R</b> to record</div>
+
+  <script type="module" src="../src/nca.js"></script>
+</body>
+</html>

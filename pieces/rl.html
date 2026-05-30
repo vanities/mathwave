@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RL CartPole 学習 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Reinforcement learning, live — an agent learns to balance a pole on a cart. The Cross-Entropy Method evolves a linear policy from flailing to rock-steady in seconds." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">training the agent</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">RL <em>CartPole</em></div>
+      <div class="s">学習 · cross-entropy method</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>学習 · balance the pole</h3>
+    <div class="field">
+      <label for="speed">sim speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label>reward curve <span class="muted" style="letter-spacing:0">elite mean · 0–500</span></label>
+      <canvas id="curve" width="296" height="40" style="width:100%;height:40px;border:1px solid var(--line);background:rgba(8,12,18,.5)"></canvas>
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">retrain</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        CEM evolves a linear policy <b>a = sign(w·s)</b>, training headless in the background while the shown cart plays its current best. <b>↑↓</b> changes difficulty.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>gen <b id="ep">0</b></div>
+    <div>best <b id="best">0</b> / 500</div>
+    <div>recent <b id="recent">0</b></div>
+    <div>↑↓ difficulty</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>difficulty</b> · watch it <b>learn to balance</b> · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/rl.js"></script>
+</body>
+</html>

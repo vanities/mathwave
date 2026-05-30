@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kohonen SOM 自己組織 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Kohonen Self-Organizing Map — a 2D neuron lattice unfolds live to wrap a 3D data cloud, preserving neighborhood topology. Colored by grid coordinate." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">unfolding the map</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Kohonen <em>SOM</em></div>
+      <div class="s">自己組織 · competitive learning</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>自己組織 · self-organizing map</h3>
+    <div class="field">
+      <label>distribution <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="dists"></div>
+    </div>
+    <div class="field">
+      <label for="alpha">learning rate α <span class="val" data-val="alpha"></span></label>
+      <input type="range" id="alpha" min="0.02" max="0.6" step="0.01" value="0.3" />
+    </div>
+    <div class="field">
+      <label for="sigma">neighborhood σ <span class="val" data-val="sigma"></span></label>
+      <input type="range" id="sigma" min="1" max="18" step="0.5" value="12" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        A flat neuron sheet <b>unfolds</b> to wrap the data: each sample pulls its
+        nearest neuron and the neighbors around it, α and σ decaying over time.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="iter">0</b> iters · <b id="dname">sphere</b></div>
+    <div>↑↓ distribution</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>distribution</b> · watch the sheet wrap the cloud · press <b>R</b></div>
+  <script type="module" src="../src/som.js"></script>
+</body>
+</html>

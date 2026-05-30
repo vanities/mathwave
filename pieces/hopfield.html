@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hopfield Network — Field Notes</title>
+  <meta name="description" content="An associative memory: drop in a corrupted pattern and watch the network recall the stored glyph by descending its energy landscape." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">storing memories</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Hopfield <em>Network</em></div>
+      <div class="s">55 · 連想 associative memory</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>s ← sign(Σ W·s)</h3>
+
+    <div class="field">
+      <label for="noise">noise <span class="val" data-val="noise"></span></label>
+      <input type="range" id="noise" min="0" max="60" step="1" value="25" />
+    </div>
+
+    <div class="field">
+      <label for="speed">recall speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="1" max="256" step="1" value="30" />
+    </div>
+
+    <div class="field">
+      <label>energy <span class="val" id="eval">0.0</span></label>
+      <div style="height:6px;border-radius:3px;background:rgba(120,200,255,.12);overflow:hidden">
+        <div id="ebar" style="height:100%;width:100%;background:linear-gradient(90deg,#0ff,#fc6)"></div>
+      </div>
+    </div>
+
+    <div class="field btnrow">
+      <button class="btn" id="recall">corrupt &amp; recall</button>
+    </div>
+
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Memories ξ are stored Hebbian-style in <b>W</b>. From a noisy start, neurons flip to <b>sign(Σ W·s)</b>, sliding the <b>energy</b> downhill to the nearest stored glyph.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="mode">async</b></div>
+  </div>
+
+  <div class="hint">↑↓ <b>memory</b> · async / sync · <b>corrupt &amp; recall</b> · press <b>R</b> to record</div>
+
+  <script type="module" src="../src/hopfield.js"></script>
+</body>
+</html>
