@@ -291,6 +291,7 @@ window.addEventListener("load", () => {
     "flatland.html", "sorting.html", "sorting3d.html", "eversion.html",
     "earthbound.html", "pixelsort.html", "transformer.html",
     "orbitals.html", "nbody.html", "ising.html",
+    "grokking.html", "embeddings.html",
   ];
   const curFile = location.pathname.split("/").pop();
   const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };

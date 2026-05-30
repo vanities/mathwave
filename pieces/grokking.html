@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grokking 円環 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="How a transformer groks modular addition — numbers on a circle, a+b mod p computed as composing rotations. The Nanda mechanistic-interpretability result." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">grokking</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Grokking <em>円環</em></div>
+      <div class="s">19 · a + b mod p = rotation</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>円環 · Fourier features</h3>
+    <div class="field">
+      <label for="mod">modulus p <span class="val" data-val="mod"></span> <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <input type="range" id="mod" min="0" max="4" step="1" value="1" />
+    </div>
+    <div class="field">
+      <label for="speed">speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0.2" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        The net learns to place number <i>k</i> at angle 2π<i>k</i>/p, then adds by <b>rotating</b>. Behind: the same numbers at frequencies ω the model superposes.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>p = <b id="pval">11</b></div>
+    <div><b id="eq">—</b></div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>modulus</b> · addition becomes <b>rotation</b> · press <b>R</b></div>
+
+  <script type="module" src="../src/grokking.js"></script>
+</body>
+</html>
