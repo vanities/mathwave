@@ -304,8 +304,11 @@ function showLens(L) {
   scene.add(lensSprite);
 }
 
+// ---------- animation state (declared before rebuild(), which runs at boot) ----------
+let curLayer = 0, layerT = 0, planeY = BASE_Y;
+
 // ---------- (re)build everything ----------
-function rebuild() { initWeights(); forward(); buildStack(); buildHeatmap(); buildResidual(); clearGroup(arcGroup); revealed = 0; buildArcs(0); paintHeatmap(0, activeHead); showLens(0); }
+function rebuild() { initWeights(); forward(); buildStack(); buildHeatmap(); buildResidual(); clearGroup(arcGroup); curLayer = 0; buildArcs(0); paintHeatmap(0, activeHead); showLens(0); }
 
 // ---------- panel ----------
 let activeHead = 0;
@@ -325,7 +328,6 @@ onResize(renderer, camera);
 const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
 
-let curLayer = 0, layerT = 0, revealed = 0, planeY = BASE_Y;
 window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, curLayer, arcs: arcGroup.children.length, attnRowSum: attnByLayer[0][0][T-1].reduce((a,b)=>a+b,0).toFixed(3), cloudR: Math.max(...dots.map(d => d.position.length())).toFixed(2) });
 
 loop((dt) => {
