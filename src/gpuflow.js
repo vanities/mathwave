@@ -32,7 +32,7 @@ controls.target.set(0, 0, 0);
 addGrid(scene, { size: 320, divisions: 40, y: -70 });
 addSun(scene, { scale: 90, position: [0, 40, -260] });
 
-const BOUND = 80.0, SPAWN = 34.0;
+const BOUND = 120.0, SPAWN = 55.0;   // larger volume so a million particles read as flow, not a packed slab
 
 // ---------- shared GLSL: Ashima simplex noise + curl ----------
 const NOISE = `
@@ -120,7 +120,7 @@ const RENDER_FS = `
     vec2 c = gl_PointCoord - 0.5; float d2 = dot(c,c); if(d2>0.25) discard;
     float a = smoothstep(0.25, 0.0, d2);
     vec3 col = pal(fract((vH+${BOUND.toFixed(1)})/${(BOUND*2).toFixed(1)} + 0.1));
-    gl_FragColor = vec4(col * (0.5 + vSpeed), a*0.55);
+    gl_FragColor = vec4(col * (0.4 + 0.6 * vSpeed), a * 0.02);
   }
 `;
 
