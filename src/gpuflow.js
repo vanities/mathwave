@@ -86,7 +86,7 @@ const POS_SHADER = `
     if(uMode==1){ float r=length(p.xz)+0.001; vec3 sw=vec3(-p.z,0.0,p.x)/r; return sw*1.6+curlNoise(p*0.04)*0.6+vec3(0.0,0.4,0.0); }
     else if(uMode==2){ float s=10.0,rr=28.0,b=2.6667; return vec3(s*(p.y-p.x), p.x*(rr-p.z)-p.y, p.x*p.y-b*p.z)*0.018; }
     else if(uMode==3){ float r=length(p.xz)+0.001; vec3 sw=vec3(-p.z,0.0,p.x)/r; vec3 pull=-normalize(vec3(p.x,p.y*2.0,p.z)+1e-4)*0.35; return sw*(2.4/sqrt(r))+pull+curlNoise(p*0.05)*0.3; }
-    return curlNoise(p*0.05 + uTime*0.01)*2.0;
+    return curlNoise(p*0.035 + uTime*0.02)*3.2;
   }
   void main(){
     vec2 uv = gl_FragCoord.xy / resolution.xy;
