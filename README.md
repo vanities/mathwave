@@ -1,20 +1,32 @@
 # ＭＡＴＨＷＡＶＥ 数学波
 
-> a vaporwave gallery of mathematical art
+> a vaporwave gallery of mathematical art — built to be filmed
 
-Four neon-soaked rooms, each carved from a single formula and a GPU.
+Five neon-soaked rooms, each carved from a single formula and a GPU.
 No framework, no build step — just serve the folder and open it.
+
+Every room has a **REC** button (or press **R**): it captures the live canvas to a
+downloadable `.webm` so you can grab the "plays" and share the clips. That's the whole
+point — hit record, let the math run, walk away with a video.
 
 | Room | What it is | Tech |
 |------|-----------|------|
 | **01 · 曲面 Graphed Surfaces** | Type `z = f(x, y, t)` and it blooms into a living, neon-shaded surface over a grid floor. Use `t` to animate. | Three.js + [math.js] |
 | **02 · 無限 The Mandelbulb** | A 3D fractal raymarched entirely on the GPU. Orbit/zoom into infinite detail, painted in pink + cyan. | Three.js + raw GLSL |
 | **03 · 混沌 Strange Attractors** | Lorenz, Aizawa, Thomas, Halvorsen, Dadras — chaotic ODEs drawn as glowing ribbons. | Three.js + RK4 |
-| **04 · 故障 Pixel Sort** | A generative neon field torn apart and re-ordered pixel by pixel — Kim Asendorf's glitch technique. | Canvas2D pixel sorting |
+| **04 · 生命 3D Game of Life** | Conway's Life in *three dimensions* — Carter Bays' 26-neighbor rules (5766, 4555, pyroclastic, clouds, crystal) as hollow neon voxel shells. Rule 5766 has 3D gliders. | Three.js InstancedMesh |
+| **05 · 故障 Pixel Sort** | A generative neon field torn apart and re-ordered pixel by pixel — Kim Asendorf's glitch technique. | Canvas2D pixel sorting |
 
 The whole thing wears a CRT scanline + grain overlay, a sliced retro sun, and an
 outrun grid horizon. Type is three retro voices: **Monoton** (the neon sign),
 **DotGothic16** (pixel headings + 日本語), and **VT323** (the terminal).
+
+### About 3D Game of Life
+
+Standard Conway is 2D with 8 neighbors (rule *B3/S23*). In 3D each cell has **26**
+neighbors, so rules are renamed `survive / born` ranges. Carter Bays found the canonical
+3D-Life analogue **5766** (survive 5–7, born 6) in the 1980s — it even sustains gliders.
+The other rules here come from the *Visions of Chaos* catalogue.
 
 ## Run it
 
@@ -33,14 +45,15 @@ math.js load from a CDN via the import map in each HTML file — nothing to inst
 
 ```
 index.html              gallery landing (neon outrun-terrain hero)
-assets/base.css         the whole vaporwave design system + CRT overlay
-src/common.js           shared helpers: renderer, loop, FPS, neon ramp,
-                        grid floor, sliced sun, and the CRT injector
+assets/base.css         the whole vaporwave design system + CRT overlay + REC pill
+src/common.js           shared helpers: renderer, loop, FPS, neon ramp, grid floor,
+                        sliced sun, CRT injector, and the .webm video recorder
 src/hero.js             landing-page hero terrain
 pieces/parametric.html ─┐  src/parametric.js   room 01
 pieces/fractal.html    ─┤  src/fractal.js      room 02  (Mandelbulb DE in GLSL)
 pieces/attractor.html  ─┤  src/attractor.js    room 03
-pieces/pixelsort.html  ─┘  src/pixelsort.js    room 04  (after kim asendorf)
+pieces/life.html       ─┤  src/life.js         room 04  (3D cellular automaton)
+pieces/pixelsort.html  ─┘  src/pixelsort.js    room 05  (after kim asendorf)
 ```
 
 ### The honest tech note
@@ -53,15 +66,20 @@ mathematics comes from three places stacked on top of it:
 3. **GLSL fragment shaders** — the heavy artillery: room 02's fractal is computed
    per-pixel on the GPU with a signed-distance raymarcher.
 
-Room 04 leaves 3D entirely: it's a CPU image operation (pixel sorting) on a `<canvas>`,
-the same family of technique behind Kim Asendorf's *ASDF Pixel Sort* and *Mountain Tour*.
+Room 04 (3D Life) is a CPU cellular automaton drawn with one `InstancedMesh`; interior
+cells are culled so you see hollow shells. Room 05 leaves 3D entirely: a CPU image
+operation (pixel sorting) on a `<canvas>`, the family behind Kim Asendorf's *ASDF Pixel
+Sort* and *Mountain Tour*.
 
 ## Ideas to take it further
 
 - Room 01: add true `u,v` parametric mode (Klein bottles, supershapes), not just height fields.
 - Room 02: swap the Mandelbulb DE for Julia sets, Menger sponges, or Apollonian gaskets.
 - Room 03: render the attractor as a moving "comet" trail instead of a full ribbon.
-- Room 04: feed a real photo into the sorter; add datamosh / RGB-shift passes.
+- Room 04: GPU the automaton (3D texture + compute) to push the grid past 30³.
+- Room 05: feed a real photo into the sorter; add datamosh / RGB-shift passes.
+- More rooms on the wishlist: **sphere eversion** (turning a sphere inside-out),
+  **3D vector fields / calculus planes**, and **sorting-algorithm visualizers**.
 - Ship it: graduate to a Vite + TypeScript project and deploy to Vercel.
 
 [math.js]: https://mathjs.org
