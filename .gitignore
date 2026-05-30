@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# logs / deps (none yet, but just in case)
+node_modules/
+*.log

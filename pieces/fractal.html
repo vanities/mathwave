@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Mandelbulb — Field Notes</title>
+  <meta name="description" content="A 3D fractal raymarched entirely on the GPU by a fragment shader. Orbit and zoom into infinite detail." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">compiling shader</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="../index.html"><span aria-hidden="true">←</span> Gallery</a>
+    <div class="hud-title">
+      <div class="t">The <em>Mandelbulb</em></div>
+      <div class="s">02 · 無限 raymarched SDF</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>z → zⁿ + c</h3>
+
+    <div class="field">
+      <label for="power">power <span class="val" data-val="power"></span></label>
+      <input type="range" id="power" min="2" max="12" step="0.1" value="8" />
+    </div>
+
+    <div class="field">
+      <label for="iter">fractal iterations <span class="val" data-val="iter"></span></label>
+      <input type="range" id="iter" min="2" max="12" step="1" value="8" />
+    </div>
+
+    <div class="field">
+      <label for="steps">march detail <span class="val" data-val="steps"></span></label>
+      <input type="range" id="steps" min="40" max="180" step="5" value="110" />
+    </div>
+
+    <div class="field btnrow">
+      <button class="btn" id="morph">morph power</button>
+      <button class="btn active" id="spin">auto-spin</button>
+      <button class="btn" id="reset">reset view</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>power <b id="pw">8.0</b></div>
+    <div>dist <b id="dist">2.6</b></div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · scroll <b>zoom</b> · try <b>morph power</b></div>
+
+  <script type="module" src="../src/fractal.js"></script>
+</body>
+</html>
