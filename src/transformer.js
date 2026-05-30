@@ -20,7 +20,9 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { makePS1Pipeline, ps1ify } from "./ps1.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import {
   makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, ramp, reducedMotion, addGrid, addSun, setVariantCycler,
 } from "./common.js";
@@ -28,8 +30,8 @@ import {
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a161b);
-scene.fog = new THREE.Fog(0x0a161b, 70, 240);      // heavy PS1 draw-distance fog — murky teal, NOT purple
+scene.background = new THREE.Color(0x05060b);
+scene.fog = new THREE.Fog(0x05060b, 95, 320);      // near-black so EVERY cube colour pops (teal bg ate the cyan/green cubes)
 
 // ---------- model dims ----------
 const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
@@ -51,26 +53,30 @@ const zOfCh = (c) => (c - (Dm - 1) / 2) * CW;     // channel → Z (centered on 
 const CY = 12.0;                                  // lift the whole structure off the grid
 
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 2000);
-camera.position.set(MIDX - 44, CY + 16, 92);      // close 3/4 so the cube-BLOCKS read big, pipeline recedes right
+camera.position.set(MIDX - 50, CY + 20, 120);     // 3/4 so all 7 slabs read left→right as solid blocks
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.07;
 controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.28;
 controls.minDistance = 16; controls.maxDistance = 420;
 controls.target.set(MIDX, CY, 0);
 
-// everything here is unlit (MeshBasic / Points / Lines), so no scene lights needed.
-// PS1 floor: a muted wire grid, vertex-snapped so it wobbles, dissolving into the fog.
-const floor = new THREE.GridHelper(420, 84, 0x3aa6bf, 0x16424e);
+// neutral lights so the lit cube faces read as 3D BLOCKS (top/side shading) without
+// tinting their value-colours.
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.85); keyLight.position.set(40, 60, 50); scene.add(keyLight);
+const rimLight = new THREE.DirectionalLight(0x9fd0ff, 0.3); rimLight.position.set(-40, 10, -30); scene.add(rimLight);
+// clean dark-teal wire floor (no neon magenta, no wobble), dissolving into the fog
+const floor = new THREE.GridHelper(440, 88, 0x3aa6bf, 0x174450);
 floor.position.set(MIDX, -1, 0);
 floor.material.transparent = true; floor.material.opacity = 0.5; floor.material.depthWrite = false;
-ps1ify(floor.material, { snap: 220 });
 scene.add(floor);
 
-// ---------- PlayStation-1 render pipeline (replaces bloom) ----------
-// low-res framebuffer + nearest upscale + 4×4 Bayer dither + 15-bit color crunch.
-// Exposed as `composer` (.render()/.setSize()) so the existing loop & resize just work.
-const composer = makePS1Pipeline(renderer, scene, camera, { scale: 4, levels: 32 });
-const bloom = { setSize() {}, strength: 0 };   // dummy: absorbs any old resize/UI refs
+// ---------- subtle bloom: a gentle glow on the bright cube faces, kept crisp ----------
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+// high threshold → only the brightest lit faces glow; low strength → stays legible
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.5, 0.72);
+composer.addPass(bloom);
 
 // ---------- deterministic RNG + linear algebra ----------
 let seedSalt = 7;
@@ -138,10 +144,10 @@ const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop
 
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
 // rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
-const cubeGeo = new THREE.BoxGeometry(CW * 0.92, CW * 0.92, CW * 0.92);
+const cubeGeo = new THREE.BoxGeometry(CW * 0.82, CW * 0.82, CW * 0.82);
 // unlit, vertex-colored: each cube renders EXACTLY its value-hue (no white emissive
 // or metallic reflection to wash it out). Bloom adds glow from the color's own brightness.
-const cubeMat = ps1ify(new THREE.MeshBasicMaterial({ vertexColors: true }), { snap: 240 });
+const cubeMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.0 });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
 const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.7);   // v is a z-score → spreads cyan→pink evenly
@@ -237,7 +243,7 @@ function buildFlow() {
   pulseGeo.setAttribute("position", new THREE.BufferAttribute(pulsePos, 3).setUsage(THREE.DynamicDrawUsage));
   pulseGeo.setAttribute("color", new THREE.BufferAttribute(pulseCol, 3));
   if (pulseMesh) flowGroup.remove(pulseMesh);
-  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 0.95, vertexColors: true, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 0.8, vertexColors: true, transparent: true, opacity: 0.32, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
   pulseMesh.frustumCulled = false;
   flowGroup.add(pulseMesh);
 }
@@ -257,7 +263,7 @@ function animateFlow(time) {
       pulsePos[n * 3] = _pt.x; pulsePos[n * 3 + 1] = _pt.y; pulsePos[n * 3 + 2] = _pt.z;
       // brightness fades in/out along the strand (comet-like) and scales with weight
       const fade = Math.sin(t * Math.PI);
-      const br = (0.12 + ed.w * 1.3) * fade;
+      const br = (0.07 + ed.w * 0.7) * fade;
       pulseCol[n * 3] = ed.base[0] * br; pulseCol[n * 3 + 1] = ed.base[1] * br; pulseCol[n * 3 + 2] = ed.base[2] * br;
       n++;
     }
