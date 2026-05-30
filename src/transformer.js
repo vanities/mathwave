@@ -51,7 +51,7 @@ const zOfCh = (c) => (c - (Dm - 1) / 2) * CW;     // channel → Z (centered on 
 const CY = 12.0;                                  // lift the whole structure off the grid
 
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 2000);
-camera.position.set(MIDX - 12, CY + 22, 178);     // broadside-ish so all 7 slabs read left→right
+camera.position.set(MIDX - 44, CY + 16, 92);      // close 3/4 so the cube-BLOCKS read big, pipeline recedes right
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.07;
 controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.28;
@@ -138,7 +138,7 @@ const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop
 
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
 // rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
-const cubeGeo = new THREE.BoxGeometry(CW * 0.86, CW * 0.86, CW * 0.86);
+const cubeGeo = new THREE.BoxGeometry(CW * 0.92, CW * 0.92, CW * 0.92);
 // unlit, vertex-colored: each cube renders EXACTLY its value-hue (no white emissive
 // or metallic reflection to wash it out). Bloom adds glow from the color's own brightness.
 const cubeMat = ps1ify(new THREE.MeshBasicMaterial({ vertexColors: true }), { snap: 240 });
@@ -219,7 +219,7 @@ function buildFlow() {
   const sg = new THREE.BufferGeometry();
   sg.setAttribute("position", new THREE.Float32BufferAttribute(strandPos, 3));
   sg.setAttribute("color", new THREE.Float32BufferAttribute(strandCol, 3));
-  flowGroup.add(new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false })));
+  flowGroup.add(new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })));
 
   // travelling pulses: PER dots per edge, animated each frame in the loop
   const total = edges.length * PER;
@@ -229,7 +229,7 @@ function buildFlow() {
   pulseGeo.setAttribute("position", new THREE.BufferAttribute(pulsePos, 3).setUsage(THREE.DynamicDrawUsage));
   pulseGeo.setAttribute("color", new THREE.BufferAttribute(pulseCol, 3));
   if (pulseMesh) flowGroup.remove(pulseMesh);
-  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 1.05, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 0.95, vertexColors: true, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
   pulseMesh.frustumCulled = false;
   flowGroup.add(pulseMesh);
 }
