@@ -30,7 +30,7 @@ import {
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x07030f, 0.0052);   // deeper near-black so neon pops
+scene.fog = new THREE.FogExp2(0x05020c, 0.0048);   // near-black so neon pops, bloom won't wash it
 
 // ---------- model dims ----------
 const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
@@ -69,8 +69,8 @@ addSun(scene, { scale: 64, position: [MIDX, CY + 26, -240] });
 // ---------- bloom: the single biggest aesthetic upgrade for neon-on-black ----------
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.9, 0.7, 0.0);
-bloom.strength = 1.15; bloom.radius = 0.85; bloom.threshold = 0.0;
+// threshold high enough that only bright neon blooms — NOT the fog/background
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.5, 0.62);
 composer.addPass(bloom);
 
 // ---------- deterministic RNG + linear algebra ----------
@@ -140,9 +140,8 @@ const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
 // rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
 const cubeGeo = new THREE.BoxGeometry(CW * 0.74, CW * 0.74, CW * 0.74);
-// vertexColors drive BOTH diffuse and emissive (emissive multiplies the white
-// emissive uniform by the per-vertex color), so each cell self-glows in its own hue.
-const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.3, metalness: 0.3, emissive: 0xffffff, emissiveIntensity: 0.35, vertexColors: true });
+// modest emissive so cells glow in their own hue but keep visible cube detail
+const cubeMat = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.25, emissive: 0xffffff, emissiveIntensity: 0.18, vertexColors: true });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
 const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);
