@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ＭＡＴＨＷＡＶＥ 数学波 — a vaporwave gallery of mathematical art</title>
-  <meta name="description" content="Equations rendered as neon: graphed surfaces, a raymarched fractal, strange attractors, and a pixel-sort glitch room. Three.js + GLSL, no build step." />
+  <meta name="description" content="Equations rendered as neon: graphed surfaces, a raymarched fractal, strange attractors, 3D Game of Life, and a pixel-sort glitch room. Record any play to video. Three.js + GLSL, no build step." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,12 +31,13 @@
         <a href="pieces/parametric.html">曲面 Surfaces</a>
         <a href="pieces/fractal.html">無限 Fractal</a>
         <a href="pieces/attractor.html">混沌 Attractors</a>
+        <a href="pieces/life.html">生命 Life</a>
         <a href="pieces/pixelsort.html">故障 Glitch</a>
       </nav>
     </header>
 
     <div class="ticker" aria-hidden="true">
-      <span>数学 ✦ 美学 ✦ 関数 ✦ 混沌 ✦ 無限 ✦ 故障 ✦ 波 ✦ 永遠 ✦ ＭＡＴＨ ＩＳ ＡＲＴ ✦ 数学 ✦ 美学 ✦ 関数 ✦ 混沌 ✦ 無限 ✦ 故障 ✦ 波 ✦ 永遠 ✦ ＭＡＴＨ ＩＳ ＡＲＴ ✦&nbsp;</span>
+      <span>数学 ✦ 美学 ✦ 関数 ✦ 混沌 ✦ 無限 ✦ 故障 ✦ 生命 ✦ 波 ✦ 永遠 ✦ ＭＡＴＨ ＩＳ ＡＲＴ ✦ 数学 ✦ 美学 ✦ 関数 ✦ 混沌 ✦ 無限 ✦ 故障 ✦ 生命 ✦ 波 ✦ 永遠 ✦ ＭＡＴＨ ＩＳ ＡＲＴ ✦&nbsp;</span>
     </div>
 
     <section class="hero">
@@ -45,13 +46,14 @@
         <h1 class="hero__wordmark glitch" data-text="ＭＡＴＨＷＡＶＥ">ＭＡＴＨＷＡＶＥ</h1>
         <p class="hero__sub">the math was always 美しい</p>
         <p class="hero__lede">
-          Four neon-soaked rooms, each carved from a single formula and a GPU.
-          <b>Type a function and watch it bloom into a surface.</b> Fall forever into a
-          fractal. Trace the shape of chaos. Then let the pixels come apart at the seams.
+          Five neon-soaked rooms, each carved from a single formula and a GPU — and built
+          to be <b>filmed</b>. Hit record, let the play run, walk away with a clip. Surfaces
+          that bloom, a fractal you fall into, the shape of chaos, Conway's cells alive in 3D,
+          and pixels torn apart at the seams.
         </p>
         <div class="hero__meta">
           <span>Three.js + GLSL</span>
-          <span>No build step</span>
+          <span>Record any play · press R</span>
           <span>Runs in your browser</span>
         </div>
       </div>
@@ -66,7 +68,7 @@
     <section class="gallery" id="gallery">
       <div class="gallery__head">
         <h2>ＴＨＥ ＥＸＨＩＢＩＴＳ</h2>
-        <span class="count">004 rooms</span>
+        <span class="count">005 rooms</span>
       </div>
 
       <div class="grid">
@@ -144,9 +146,39 @@
 
         <!-- 04 -->
         <article class="card">
+          <a class="card__link" href="pieces/life.html" aria-label="Open 3D Game of Life"></a>
+          <div class="card__poster">
+            <span class="card__index">04</span><span class="card__jp">生命</span>
+            <svg class="glyph" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="320" height="180" fill="#0c021c"/>
+              <g stroke="#2a1150" stroke-width="1">
+                <path d="M0 30H320M0 60H320M0 90H320M0 120H320M0 150H320"/>
+                <path d="M40 0V180M80 0V180M120 0V180M160 0V180M200 0V180M240 0V180M280 0V180"/>
+              </g>
+              <!-- isometric voxel cluster -->
+              <g opacity="0.95">
+                <rect x="120" y="60" width="28" height="28" fill="#62ffb3" transform="skewY(-18)"/>
+                <rect x="150" y="74" width="28" height="28" fill="#2be4ff" transform="skewY(-18)"/>
+                <rect x="180" y="60" width="28" height="28" fill="#ff2e97" transform="skewY(-18)"/>
+                <rect x="150" y="44" width="28" height="28" fill="#b06bff" transform="skewY(-18)"/>
+                <rect x="120" y="104" width="28" height="28" fill="#ff3fb0" transform="skewY(-18)"/>
+                <rect x="180" y="104" width="28" height="28" fill="#2be4ff" transform="skewY(-18)"/>
+              </g>
+            </svg>
+          </div>
+          <div class="card__body">
+            <span class="card__kicker">3D cellular automata · bays 5766</span>
+            <h3 class="card__title">3D Game of <em>Life</em></h3>
+            <p class="card__desc">Conway's Game of Life, but in three dimensions — 26-neighbor rules evolving as hollow neon voxel shells. Rule 5766 even has 3D gliders.</p>
+            <span class="card__cta">enter the room <span class="arrow">→</span></span>
+          </div>
+        </article>
+
+        <!-- 05 -->
+        <article class="card">
           <a class="card__link" href="pieces/pixelsort.html" aria-label="Open Pixel Sort"></a>
           <div class="card__poster">
-            <span class="card__index">04</span><span class="card__jp">故障</span>
+            <span class="card__index">05</span><span class="card__jp">故障</span>
             <svg class="glyph" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
               <rect width="320" height="180" fill="#0c021c"/>
               <g opacity="0.9">
@@ -169,7 +201,7 @@
           <div class="card__body">
             <span class="card__kicker">pixel sorting · after kim asendorf</span>
             <h3 class="card__title">Pixel <em>Sort</em></h3>
-            <p class="card__desc">A generative field torn apart and re-ordered pixel by pixel — the glitch technique Kim Asendorf made famous, in full neon.</p>
+            <p class="card__desc">A generative neon field torn apart and re-ordered pixel by pixel — the glitch technique Kim Asendorf made famous, in full neon.</p>
             <span class="card__cta">enter the room <span class="arrow">→</span></span>
           </div>
         </article>
@@ -179,7 +211,7 @@
 
     <footer class="colophon">
       <span>built with <a href="https://threejs.org">Three.js</a> &amp; raw GLSL — no framework, no build · 故障 forever</span>
-      <span>drag to orbit · scroll to zoom · it's all just an equation</span>
+      <span>drag to orbit · scroll to zoom · press R to record · it's all just an equation</span>
     </footer>
 
   </div>
