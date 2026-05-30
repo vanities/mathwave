@@ -12,8 +12,16 @@ It's a **kiosk**, not a website. You boot straight into a room; there's no menu.
 ↑  ↓    cycle the variation inside the room (preset / rule / system / algorithm)
 M       show / hide the interface (hidden by default)
 R       record the live canvas to a video  ·  1–5 record a timed clip (10/15/20/30s)
+A       record ALL rooms hands-free — walks every room, downloads a clip each
 Esc     jump back to the first room
 ```
+
+**Record everything at once:** press **A** (or the **⏺ ALL** button). It picks the
+current duration (∞ → 12s), then visits every room in turn — warming up, recording a
+clip, downloading it as `mathwave-NN-room.webm/mp4`, and advancing automatically. A
+progress HUD shows `REC ALL · 7/29 · life`. The browser asks once to "allow multiple
+downloads" — say yes and walk away; ~7 minutes later you have a clip of all 29 rooms.
+(Esc cancels.)
 
 The **R** recorder prefers **MP4** so clips upload straight to X / Instagram (Safari makes
 real `.mp4`; Chrome/Firefox fall back to `.webm`). The duration picker auto-stops and

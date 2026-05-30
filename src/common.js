@@ -163,6 +163,19 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
   return sprite;
 }
 
+// the canonical room order — shared by the kiosk nav and the batch recorder
+const ROOMS = [
+  "parametric.html", "fractal.html", "attractor.html", "hamiltonian.html",
+  "vectorfield.html", "gradient.html", "life.html", "reaction.html",
+  "flatland.html", "sorting.html", "sorting3d.html", "eversion.html",
+  "earthbound.html", "pixelsort.html", "transformer.html",
+  "orbitals.html", "nbody.html", "ising.html",
+  "grokking.html", "embeddings.html",
+  "pendulum.html", "diffusion.html", "superposition.html",
+  "boids.html", "epicycles.html", "hopf.html",
+  "bloch.html", "wolfram.html", "physarum.html",
+];
+
 // ============================================================
 // VIDEO RECORDER — capture the "plays" to a downloadable clip.
 // MP4 is preferred so the file uploads straight to X / Instagram
@@ -200,6 +213,14 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
       return d;
     });
 
+    // "⏺ ALL" — record a clip of every room, hands-free
+    const allBtn = document.createElement("button");
+    allBtn.className = "rec-all";
+    allBtn.textContent = "⏺ ALL";
+    allBtn.title = "Record a clip of EVERY room, hands-free (A)";
+    allBtn.addEventListener("click", () => beginBatch());
+    wrapEl.appendChild(allBtn);
+
     document.body.appendChild(wrapEl);
 
     let recorder = null, chunks = [], t0 = 0, timer = 0, autostop = 0;
@@ -211,7 +232,11 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
       return types.find((t) => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || "";
     };
 
-    const start = () => {
+    let pendingName = null, pendingThen = null;
+    const start = (opts = {}) => {
+      const dur = opts.dur != null ? opts.dur : durSec;
+      pendingName = opts.name || null;
+      pendingThen = opts.then || null;
       const stream = canvas.captureStream(60);
       const mime = pickMime();
       try {
@@ -225,11 +250,14 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
         const blob = new Blob(chunks, { type });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        const base = (document.title.split("—")[0] || "mathwave").trim().replace(/[^\w]+/g, "-").toLowerCase() || "mathwave";
         const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-        a.href = url; a.download = `${base}-${stamp}.${ext}`;
+        const base = (document.title.split("—")[0] || "mathwave").trim().replace(/[^\w]+/g, "-").toLowerCase() || "mathwave";
+        const fname = pendingName ? `mathwave-${pendingName}` : `${base}-${stamp}`;
+        a.href = url; a.download = `${fname}.${ext}`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 4000);
+        const cb = pendingThen; pendingThen = null; pendingName = null;
+        if (cb) setTimeout(cb, 600);   // let the download settle before advancing
       };
       recorder.start();
       t0 = performance.now();
@@ -237,9 +265,9 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
       document.body.classList.add("recording");   // keep REC visible even with chrome hidden
       timer = setInterval(() => {
         const el = (performance.now() - t0) / 1000;
-        label().textContent = durSec ? `${Math.max(0, durSec - el).toFixed(1)}s` : `${el.toFixed(1)}s`;
+        label().textContent = dur ? `${Math.max(0, dur - el).toFixed(1)}s` : `${el.toFixed(1)}s`;
       }, 100);
-      if (durSec) autostop = setTimeout(stop, durSec * 1000);
+      if (dur) autostop = setTimeout(stop, dur * 1000);
     };
 
     const stop = () => {
@@ -253,9 +281,52 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
 
     const toggle = () => (recorder && recorder.state === "recording" ? stop() : start());
     btn.addEventListener("click", toggle);
+
+    // ---- batch: record EVERY room hands-free ----
+    // Stores a queue in sessionStorage, then each room auto-records for `dur`
+    // seconds, downloads its clip (NN-room.webm/mp4), and navigates to the next.
+    const pad = (n) => String(n).padStart(2, "0");
+    function beginBatch() {
+      const dur = durSec || 12;                       // ∞ → default 12s per room
+      sessionStorage.setItem("mw_batch", JSON.stringify({ dur }));
+      document.body.classList.add("warping");
+      setTimeout(() => { location.href = ROOMS[0]; }, 150);
+    }
+    function batchHUD(html) {
+      let h = document.getElementById("mw-batch-hud");
+      if (!h) { h = document.createElement("div"); h.id = "mw-batch-hud"; h.className = "batch-hud"; document.body.appendChild(h); }
+      h.innerHTML = html;
+      return h;
+    }
+    function cancelBatch() {
+      sessionStorage.removeItem("mw_batch");
+      const h = document.getElementById("mw-batch-hud"); if (h) h.remove();
+    }
+    (function maybeRunBatch() {
+      const raw = sessionStorage.getItem("mw_batch");
+      if (!raw) return;
+      let b; try { b = JSON.parse(raw); } catch { cancelBatch(); return; }
+      const curFile = location.pathname.split("/").pop();
+      const idx = ROOMS.indexOf(curFile);
+      if (idx < 0) { cancelBatch(); return; }
+      const dur = b.dur || 12;
+      const stem = curFile.replace(".html", "");
+      batchHUD(`◉ <b>REC ALL</b> &nbsp; ${idx + 1}/${ROOMS.length} &nbsp; <span style="color:var(--accent-2)">${stem}</span> &nbsp;·&nbsp; <span style="opacity:.7">Esc cancels · allow multiple downloads if asked</span>`);
+      window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancelBatch(); });
+      setTimeout(() => {                                // let the scene warm up first
+        if (!sessionStorage.getItem("mw_batch")) return; // cancelled during the wait
+        start({ dur, name: `${pad(idx + 1)}-${stem}`, then: () => {
+          if (!sessionStorage.getItem("mw_batch")) return;
+          if (idx + 1 < ROOMS.length) { document.body.classList.add("warping"); setTimeout(() => (location.href = ROOMS[idx + 1]), 250); }
+          else { sessionStorage.removeItem("mw_batch"); batchHUD(`✓ <b>done</b> — ${ROOMS.length} clips downloaded`); setTimeout(cancelBatch, 5000); }
+        }});
+      }, 1700);
+    })();
+
     window.addEventListener("keydown", (e) => {
       if (isTyping() || e.metaKey || e.ctrlKey) return;
       if (e.key === "r" || e.key === "R") { e.preventDefault(); toggle(); }
+      else if (e.key === "a" || e.key === "A") { e.preventDefault(); beginBatch(); }
       // 1–5 pick a duration and immediately start a timed clip
       else if ("12345".includes(e.key)) {
         e.preventDefault();
@@ -328,7 +399,7 @@ window.addEventListener("load", () => {
       document.body.classList.add("chrome-hidden");   // rooms start clean
       const toast = document.createElement("div");
       toast.className = "kiosk-toast";
-      toast.innerHTML = '<b>&larr; &rarr;</b> rooms &nbsp;·&nbsp; <b>&uarr; &darr;</b> variation &nbsp;·&nbsp; <b>M</b> menu &nbsp;·&nbsp; <b>R</b> rec';
+      toast.innerHTML = '<b>&larr; &rarr;</b> rooms &nbsp;·&nbsp; <b>&uarr; &darr;</b> variation &nbsp;·&nbsp; <b>M</b> menu &nbsp;·&nbsp; <b>R</b> rec &nbsp;·&nbsp; <b>A</b> rec all';
       document.body.appendChild(toast);
       setTimeout(() => toast.classList.add("fade"), 3600);
       setTimeout(() => toast.remove(), 4500);
