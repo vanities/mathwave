@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Machine Elves 機械 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Hyperspace — a raymarched kaleidoscopic tunnel into a chamber of self-transforming fractal entities. The DMT machine-elf phenomenology, built from real SDF + kIFS math." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">entering hyperspace</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Machine <em>Elves</em></div>
+      <div class="s">39 · 機械 hyperspace · kIFS</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>機械 · kaleidoscope + IFS</h3>
+    <div class="field">
+      <label>symmetry <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="syms"></div>
+    </div>
+    <div class="field">
+      <label for="speed">rush speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label for="morph">entity morph <span class="val" data-val="morph"></span></label>
+      <input type="range" id="morph" min="0" max="2" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label for="steps">march detail <span class="val" data-val="steps"></span></label>
+      <input type="range" id="steps" min="50" max="150" step="10" value="90" />
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.82rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        A flythrough of a mirror-folded tunnel (kaleidoscope) past kIFS fractal "entities" that fold &amp; rescale — the self-transforming machine-elf geometry. ⚠️ intense motion.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="symname">6-fold</b></div>
+    <div>↑↓ symmetry</div>
+  </div>
+
+  <div class="hint">↑↓ <b>symmetry</b> · ride the <b>rush</b> · the elves <b>weave</b> · press <b>R</b> to record</div>
+  <script>window.__err=null;addEventListener("error",e=>window.__err=(e.error&&e.error.stack)||e.message);addEventListener("unhandledrejection",e=>window.__err="promise:"+(e.reason&&(e.reason.stack||e.reason.message)));</script>
+
+  <script type="module" src="../src/machineelves.js?v=2"></script>
+</body>
+</html>
