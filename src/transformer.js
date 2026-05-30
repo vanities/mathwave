@@ -20,9 +20,7 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { makePS1Pipeline, ps1ify } from "./ps1.js";
 import {
   makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, ramp, reducedMotion, addGrid, addSun, setVariantCycler,
 } from "./common.js";
@@ -30,7 +28,8 @@ import {
 const canvas = document.getElementById("scene");
 const renderer = makeRenderer(canvas);
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x05020c, 0.0048);   // near-black so neon pops, bloom won't wash it
+scene.background = new THREE.Color(0x0a161b);
+scene.fog = new THREE.Fog(0x0a161b, 70, 240);      // heavy PS1 draw-distance fog — murky teal, NOT purple
 
 // ---------- model dims ----------
 const TOKENS = ["the", "cat", "sat", "on", "the", "mat", "and", "then", "it", "purrs"];
@@ -52,26 +51,26 @@ const zOfCh = (c) => (c - (Dm - 1) / 2) * CW;     // channel → Z (centered on 
 const CY = 12.0;                                  // lift the whole structure off the grid
 
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 2000);
-camera.position.set(MIDX - 46, CY + 26, 64);      // 3/4 view so all three axes read
+camera.position.set(MIDX - 12, CY + 22, 178);     // broadside-ish so all 7 slabs read left→right
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.07;
-controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.4;
+controls.autoRotate = !reducedMotion; controls.autoRotateSpeed = 0.28;
 controls.minDistance = 16; controls.maxDistance = 420;
 controls.target.set(MIDX, CY, 0);
 
-scene.add(new THREE.AmbientLight(0x2a1a52, 0.85));
-const key = new THREE.DirectionalLight(0xfff1dd, 0.9); key.position.set(30, 50, 40); scene.add(key);
-const rim = new THREE.DirectionalLight(0x2be4ff, 0.8); rim.position.set(-30, 20, -25); scene.add(rim);
-const fill = new THREE.DirectionalLight(0xff2e97, 0.55); fill.position.set(20, -10, 30); scene.add(fill);
-addGrid(scene, { size: 260, divisions: 52, y: -1 });
-addSun(scene, { scale: 64, position: [MIDX, CY + 26, -240] });
+// everything here is unlit (MeshBasic / Points / Lines), so no scene lights needed.
+// PS1 floor: a muted wire grid, vertex-snapped so it wobbles, dissolving into the fog.
+const floor = new THREE.GridHelper(420, 84, 0x3aa6bf, 0x16424e);
+floor.position.set(MIDX, -1, 0);
+floor.material.transparent = true; floor.material.opacity = 0.5; floor.material.depthWrite = false;
+ps1ify(floor.material, { snap: 220 });
+scene.add(floor);
 
-// ---------- bloom: the single biggest aesthetic upgrade for neon-on-black ----------
-const composer = new EffectComposer(renderer);
-composer.addPass(new RenderPass(scene, camera));
-// threshold high enough that only bright neon blooms — NOT the fog/background
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.5, 0.62);
-composer.addPass(bloom);
+// ---------- PlayStation-1 render pipeline (replaces bloom) ----------
+// low-res framebuffer + nearest upscale + 4×4 Bayer dither + 15-bit color crunch.
+// Exposed as `composer` (.render()/.setSize()) so the existing loop & resize just work.
+const composer = makePS1Pipeline(renderer, scene, camera, { scale: 4, levels: 32 });
+const bloom = { setSize() {}, strength: 0 };   // dummy: absorbs any old resize/UI refs
 
 // ---------- deterministic RNG + linear algebra ----------
 let seedSalt = 7;
@@ -139,13 +138,17 @@ const clearGroup = (G) => { while (G.children.length) { const c = G.children.pop
 
 // ---------- the cubes: every (stage, token, channel) is a value-colored cube ----------
 // rounded-ish, low-roughness + emissive vertex colors so each cell self-glows into bloom
-const cubeGeo = new THREE.BoxGeometry(CW * 0.74, CW * 0.74, CW * 0.74);
+const cubeGeo = new THREE.BoxGeometry(CW * 0.86, CW * 0.86, CW * 0.86);
 // unlit, vertex-colored: each cube renders EXACTLY its value-hue (no white emissive
 // or metallic reflection to wash it out). Bloom adds glow from the color's own brightness.
-const cubeMat = new THREE.MeshBasicMaterial({ vertexColors: true });
+const cubeMat = ps1ify(new THREE.MeshBasicMaterial({ vertexColors: true }), { snap: 240 });
 let cubeMesh = null;
 const dummy = new THREE.Object3D(); const col = new THREE.Color();
 const vnorm = (v) => 0.5 + 0.5 * Math.tanh(v * 0.6);
+// bright PS1 value→color (cyan→green→amber→pink); the quantizer crunches it into bands
+const PS1_STOPS = [new THREE.Color(0x14e0ff), new THREE.Color(0x57ff9b), new THREE.Color(0xffe24d), new THREE.Color(0xff5d8f)];
+const _ps1c = new THREE.Color();
+const ps1col = (t) => { t = Math.min(0.9999, Math.max(0, t)) * (PS1_STOPS.length - 1); const i = Math.floor(t); return _ps1c.copy(PS1_STOPS[i]).lerp(PS1_STOPS[i + 1] || PS1_STOPS[i], t - i); };
 function ablate(H) {
   if (!abliterate) return H;
   return H.map((row) => { let dt = 0; for (let d = 0; d < Dm; d++) dt += row[d] * refusal[d]; return row.map((v, d) => v - dt * refusal[d]); });
@@ -162,7 +165,7 @@ function buildCubes() {
     for (let i = 0; i < T; i++) for (let c = 0; c < Dm; c++) {
       dummy.position.set(x, CY + yOfTok(i), zOfCh(c)); dummy.updateMatrix();
       cubeMesh.setMatrixAt(n, dummy.matrix);
-      const cc = ramp(vnorm(M[i][c])); col.setRGB(cc[0], cc[1], cc[2]); cubeMesh.setColorAt(n, col);
+      col.copy(ps1col(vnorm(M[i][c]))); cubeMesh.setColorAt(n, col);
       n++;
     }
   }
@@ -184,7 +187,7 @@ const anchor = (stage, i) => new THREE.Vector3(xOfStage(stage), CY + yOfTok(i), 
 
 let edges = [];            // {curve, w, layer, base[r,g,b], n} sampled control data
 let pulseGeo = null, pulsePos = null, pulseCol = null, pulseMesh = null;
-const PER = 5;             // travelling dots per connection
+const PER = 3;             // travelling dots per connection
 const SEG = 16;            // faint static strand resolution
 
 function buildFlow() {
@@ -198,12 +201,12 @@ function buildFlow() {
       const w = A[i][j]; if (w < 0.05) continue;
       attnEdges++;
       const a = anchor(L, j), b = anchor(L + 1, i);
-      const mid = new THREE.Vector3((a.x + b.x) / 2, (a.y + b.y) / 2 + w * 4.0, halfZ + 4 + w * 22 + (i - j) * 0.5);
+      const mid = new THREE.Vector3((a.x + b.x) / 2, (a.y + b.y) / 2 + w * 3.0, halfZ + 2 + w * 10 + (i - j) * 0.4);
       const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
       const base = [hc.r, hc.g, hc.b];
       edges.push({ curve, w, layer: L, base });
       // faint static strand so the wiring is visible even between pulses
-      const fb = 0.06 + w * 0.4;
+      const fb = 0.04 + w * 0.22;
       let p = curve.getPoint(0);
       for (let s = 1; s <= SEG; s++) {
         const q = curve.getPoint(s / SEG);
@@ -216,7 +219,7 @@ function buildFlow() {
   const sg = new THREE.BufferGeometry();
   sg.setAttribute("position", new THREE.Float32BufferAttribute(strandPos, 3));
   sg.setAttribute("color", new THREE.Float32BufferAttribute(strandCol, 3));
-  flowGroup.add(new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })));
+  flowGroup.add(new THREE.LineSegments(sg, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false })));
 
   // travelling pulses: PER dots per edge, animated each frame in the loop
   const total = edges.length * PER;
@@ -226,7 +229,7 @@ function buildFlow() {
   pulseGeo.setAttribute("position", new THREE.BufferAttribute(pulsePos, 3).setUsage(THREE.DynamicDrawUsage));
   pulseGeo.setAttribute("color", new THREE.BufferAttribute(pulseCol, 3));
   if (pulseMesh) flowGroup.remove(pulseMesh);
-  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 1.4, vertexColors: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+  pulseMesh = new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 1.05, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
   pulseMesh.frustumCulled = false;
   flowGroup.add(pulseMesh);
 }
@@ -246,7 +249,7 @@ function animateFlow(time) {
       pulsePos[n * 3] = _pt.x; pulsePos[n * 3 + 1] = _pt.y; pulsePos[n * 3 + 2] = _pt.z;
       // brightness fades in/out along the strand (comet-like) and scales with weight
       const fade = Math.sin(t * Math.PI);
-      const br = (0.3 + ed.w * 2.6) * fade;
+      const br = (0.12 + ed.w * 1.3) * fade;
       pulseCol[n * 3] = ed.base[0] * br; pulseCol[n * 3 + 1] = ed.base[1] * br; pulseCol[n * 3 + 2] = ed.base[2] * br;
       n++;
     }
