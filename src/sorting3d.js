@@ -30,7 +30,7 @@ const key = new THREE.DirectionalLight(0xff2e97, 1.05); key.position.set(12, 20,
 const rim = new THREE.DirectionalLight(0x2be4ff, 0.9); rim.position.set(-14, 8, -10); scene.add(rim);
 const top = new THREE.DirectionalLight(0xfff1dd, 0.45); top.position.set(0, 26, 4); scene.add(top);
 addGrid(scene, { size: 40, divisions: 20, y: -9 });
-addSun(scene, { scale: 40, position: [0, 6, -64] });
+addSun(scene, { scale: 24, position: [0, 14, -74] });   // smaller/higher so it doesn't swamp the cube
 
 // ---------- the cube + space-filling curve ----------
 // Exploded on purpose: GAP > VOX leaves air between voxels so you can see INTO
@@ -76,6 +76,8 @@ const geo = new THREE.BoxGeometry(VOX, VOX, VOX);
 const mat = new THREE.MeshBasicMaterial({});
 const mesh = new THREE.InstancedMesh(geo, mat, COUNT);
 mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+mesh.frustumCulled = false;   // bounding sphere is the unit box at origin; instances span ±5 → don't cull
+mesh.count = COUNT;
 scene.add(mesh);
 const dummy = new THREE.Object3D();
 const color = new THREE.Color();
@@ -91,7 +93,8 @@ mesh.instanceMatrix.needsUpdate = true;
 let touch = -1;
 function paint() {
   for (let m = 0; m < COUNT; m++) {
-    const c = ramp(arr[m] / (COUNT - 1));
+    // keep values off the darkest end of the ramp so low voxels still glow
+    const c = ramp(0.16 + 0.84 * (arr[m] / (COUNT - 1)));
     if (m === touch) color.setRGB(1, 1, 1);
     else color.setRGB(c[0], c[1], c[2]);
     mesh.setColorAt(m, color);
@@ -113,8 +116,8 @@ let phase = "shuffled", hold = 0;   // start in a visible shuffled hold, THEN so
 
 function start(i) {
   algoIdx = i; shuffle(); gen = ALGOS[i][1](arr); phase = "shuffled"; hold = 0; touch = -1;
-  nameEl.textContent = ALGOS[i][0];
-  chips.forEach((c, k) => c.classList.toggle("active", k === i));
+  if (nameEl) nameEl.textContent = ALGOS[i][0];
+  if (chips) chips.forEach((c, k) => c.classList.toggle("active", k === i));
   paint();
 }
 
@@ -138,6 +141,17 @@ setVariantCycler((d) => { const n = ALGOS.length; start(((algoIdx + d) % n + n) 
 // ---------- boot ----------
 start(algoIdx);
 liftVeil();
+
+// debug hook (read via agent-browser eval)
+window.__diag = () => JSON.stringify({
+  count: mesh.count, COUNT,
+  hasColor: !!mesh.instanceColor,
+  frustum: mesh.frustumCulled,
+  inScene: scene.children.includes(mesh),
+  m0: cellXYZ[0], mLast: cellXYZ[COUNT - 1],
+  cam: [camera.position.x.toFixed(1), camera.position.y.toFixed(1), camera.position.z.toFixed(1)],
+  bound: mesh.geometry.boundingSphere ? mesh.geometry.boundingSphere.radius : null,
+});
 onResize(renderer, camera);
 const meter = fpsMeter(document.getElementById("fps"));
 const doneEl = document.getElementById("done");

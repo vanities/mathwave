@@ -105,12 +105,21 @@ scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material));
 
 // ---------- presets (named after EarthBound locales) ----------
 const PRESETS = [
-  ["onett",    { mA: 2, dA: 1, mB: 0, dB: 2, pal: 0 }],
-  ["giygas",   { mA: 3, dA: 3, mB: 4, dB: 1, pal: 2 }],
-  ["saturn",   { mA: 1, dA: 2, mB: 1, dB: 1, pal: 1 }],
-  ["caverns",  { mA: 0, dA: 1, mB: 3, dB: 3, pal: 0 }],
-  ["acid rain",{ mA: 4, dA: 3, mB: 2, dB: 2, pal: 1 }],
-  ["the void", { mA: 3, dA: 2, mB: 0, dB: 3, pal: 2 }],
+  ["onett",     { mA: 2, dA: 1, mB: 0, dB: 2, pal: 0 }],
+  ["giygas",    { mA: 3, dA: 3, mB: 4, dB: 1, pal: 2 }],
+  ["saturn",    { mA: 1, dA: 2, mB: 1, dB: 1, pal: 1 }],
+  ["caverns",   { mA: 0, dA: 1, mB: 3, dB: 3, pal: 0 }],
+  ["acid rain", { mA: 4, dA: 3, mB: 2, dB: 2, pal: 1 }],
+  ["the void",  { mA: 3, dA: 2, mB: 0, dB: 3, pal: 2 }],
+  // — extra psychedelic battle backgrounds —
+  ["DMT lattice",  { mA: 1, dA: 3, mB: 3, dB: 3, pal: 1 }], // diamond grid + spiral, both interlaced helix
+  ["sea of eyes",  { mA: 0, dA: 2, mB: 0, dB: 1, pal: 2 }], // nested rings refracting two ways
+  ["fever dream",  { mA: 2, dA: 3, mB: 3, dB: 2, pal: 1 }], // plasma helix over a spiral
+  ["kaleidoscope", { mA: 1, dA: 1, mB: 3, dB: 2, pal: 1 }], // grid + spiral, rainbow cycle
+  ["meltdown",     { mA: 2, dA: 2, mB: 2, dB: 3, pal: 2 }], // double plasma, vertical split + helix
+  ["hypnosis",     { mA: 0, dA: 3, mB: 4, dB: 1, pal: 0 }], // rings helix + checker, vapor
+  ["wormhole",     { mA: 3, dA: 1, mB: 0, dB: 2, pal: 1 }], // spiral pulled horizontally into rings
+  ["static gods",  { mA: 4, dA: 3, mB: 1, dB: 3, pal: 2 }], // checker + grid both interlaced, acid
 ];
 function applyPreset(p) {
   uniforms.uModeA.value = p.mA; uniforms.uDistA.value = p.dA;
