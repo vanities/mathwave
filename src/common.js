@@ -1,11 +1,25 @@
 // common.js — shared helpers for every room in ＭＡＴＨＷＡＶＥ.
-// Renderer, resize, rAF loop, FPS, the neon palette, plus the
-// vaporwave set-dressing (grid floor + sliced sun) and the CRT overlay.
+// Renderer, resize, rAF loop, FPS, the neon palette, the vaporwave
+// set-dressing (grid floor + sliced sun), the CRT overlay, the .webm
+// video recorder, and kiosk navigation (arrow keys + M to toggle UI).
 
 import * as THREE from "three";
 
 export const reducedMotion =
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// true when the user is typing in a field — so hotkeys (R, M, arrows) don't fire
+export function isTyping() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
+// rooms register a variant cycler so ↑/↓ flips presets in-place.
+// fn(dir) should apply the change and return the new variant's label (a string).
+let variantCycler = null;
+export function setVariantCycler(fn) { variantCycler = fn; }
 
 // --- drop the CRT scanline/grain overlay onto any page that imports us ---
 (function injectCRT() {
@@ -24,6 +38,7 @@ export const reducedMotion =
 export function makeRenderer(canvas) {
   const renderer = new THREE.WebGLRenderer({
     canvas, antialias: true, powerPreference: "high-performance",
+    preserveDrawingBuffer: true, // lets captureStream/screenshot read the buffer
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -133,7 +148,6 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
   grad.addColorStop(1, "rgba(255,46,151,0)");
   g.fillStyle = grad;
   g.fillRect(0, 0, 256, 256);
-  // slice it
   g.globalCompositeOperation = "destination-out";
   for (let i = 0; i < 6; i++) {
     const yy = 150 + i * 16;
@@ -148,3 +162,183 @@ export function addSun(scene, { scale = 60, position = [0, 14, -90] } = {}) {
   scene.add(sprite);
   return sprite;
 }
+
+// ============================================================
+// VIDEO RECORDER — capture the "plays" to a downloadable clip.
+// MP4 is preferred so the file uploads straight to X / Instagram
+// (Safari produces real .mp4; Chrome/Firefox fall back to .webm).
+// A duration picker (∞ / 10 / 15 / 20 / 30s) auto-stops + downloads.
+// Click the REC pill, press R, or press 1–5 to start a timed clip.
+// ============================================================
+(function attachRecorder() {
+  const setup = () => {
+    const canvas = document.getElementById("scene");
+    if (!canvas || !("MediaRecorder" in window) || !canvas.captureStream) return;
+
+    const wrapEl = document.createElement("div");
+    wrapEl.className = "rec-wrap";
+
+    const btn = document.createElement("button");
+    btn.className = "rec";
+    btn.innerHTML = '<span class="rec-dot"></span><span class="rec-label">REC</span>';
+    btn.title = "Record this play (R) · pick a length on the right";
+    wrapEl.appendChild(btn);
+
+    // duration chips — ∞ means record until you press R/click again
+    const DURATIONS = [["∞", 0], ["10s", 10], ["15s", 15], ["20s", 20], ["30s", 30]];
+    let durSec = 0;
+    const durEls = DURATIONS.map(([lab, s], i) => {
+      const d = document.createElement("button");
+      d.className = "rec-dur" + (i === 0 ? " active" : "");
+      d.textContent = lab;
+      d.title = s ? `Record a ${s}s clip` : "Record until stopped";
+      d.addEventListener("click", () => {
+        durSec = s;
+        durEls.forEach((e) => e.classList.toggle("active", e === d));
+      });
+      wrapEl.appendChild(d);
+      return d;
+    });
+
+    document.body.appendChild(wrapEl);
+
+    let recorder = null, chunks = [], t0 = 0, timer = 0, autostop = 0;
+    const label = () => btn.querySelector(".rec-label");
+
+    // ext + mime: prefer mp4 (X-friendly), else webm
+    const pickMime = () => {
+      const types = ["video/mp4;codecs=avc1", "video/mp4", "video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+      return types.find((t) => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || "";
+    };
+
+    const start = () => {
+      const stream = canvas.captureStream(60);
+      const mime = pickMime();
+      try {
+        recorder = new MediaRecorder(stream, mime ? { mimeType: mime, videoBitsPerSecond: 12_000_000 } : undefined);
+      } catch (e) { recorder = new MediaRecorder(stream); }
+      chunks = [];
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const type = (chunks[0] && chunks[0].type) || mime || "video/webm";
+        const ext = type.includes("mp4") ? "mp4" : "webm";
+        const blob = new Blob(chunks, { type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        const base = (document.title.split("—")[0] || "mathwave").trim().replace(/[^\w]+/g, "-").toLowerCase() || "mathwave";
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        a.href = url; a.download = `${base}-${stamp}.${ext}`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      };
+      recorder.start();
+      t0 = performance.now();
+      btn.classList.add("on");
+      document.body.classList.add("recording");   // keep REC visible even with chrome hidden
+      timer = setInterval(() => {
+        const el = (performance.now() - t0) / 1000;
+        label().textContent = durSec ? `${Math.max(0, durSec - el).toFixed(1)}s` : `${el.toFixed(1)}s`;
+      }, 100);
+      if (durSec) autostop = setTimeout(stop, durSec * 1000);
+    };
+
+    const stop = () => {
+      clearTimeout(autostop);
+      if (recorder && recorder.state !== "inactive") recorder.stop();
+      clearInterval(timer);
+      btn.classList.remove("on");
+      document.body.classList.remove("recording");
+      label().textContent = "REC";
+    };
+
+    const toggle = () => (recorder && recorder.state === "recording" ? stop() : start());
+    btn.addEventListener("click", toggle);
+    window.addEventListener("keydown", (e) => {
+      if (isTyping() || e.metaKey || e.ctrlKey) return;
+      if (e.key === "r" || e.key === "R") { e.preventDefault(); toggle(); }
+      // 1–5 pick a duration and immediately start a timed clip
+      else if ("12345".includes(e.key)) {
+        e.preventDefault();
+        durEls["12345".indexOf(e.key)].click();
+        if (!(recorder && recorder.state === "recording")) start();
+      }
+    });
+  };
+  if (document.readyState !== "loading") setup();
+  else window.addEventListener("DOMContentLoaded", setup);
+})();
+
+// ---- veil failsafe: never let a loading veil get stuck ----
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.querySelectorAll(".veil:not(.gone)").forEach((v) => {
+      v.classList.add("gone");
+      setTimeout(() => v.remove(), 700);
+    });
+  }, 2500);
+});
+
+// ============================================================
+// KIOSK NAV — boot straight into the rooms; walk them with ← →.
+// ↑ / ↓ cycle the variation within the current room. The interface
+// stays hidden until you press M. R records. Esc → first room.
+// (No landing page — the gallery IS the rooms.)
+// ============================================================
+(function kioskNav() {
+  const ROOMS = [
+    "parametric.html", "fractal.html", "attractor.html", "life.html",
+    "vectorfield.html", "earthbound.html", "sorting.html", "eversion.html", "pixelsort.html",
+  ];
+  const curFile = location.pathname.split("/").pop();
+  const curIdx = () => { const i = ROOMS.indexOf(curFile); return i < 0 ? 0 : i; };
+
+  let navigating = false;
+  function goRoom(delta) {
+    if (navigating) return;
+    const n = ROOMS.length;
+    const next = ROOMS[((curIdx() + delta) % n + n) % n];
+    navigating = true;
+    document.body.classList.add("warping");      // quick fade-out; veil covers the load
+    setTimeout(() => { location.href = next; }, 170);  // rooms are siblings in /pieces/
+  }
+
+  let toastEl = null, toastT = 0;
+  function flashVariant(text) {
+    if (!toastEl) {
+      toastEl = document.createElement("div");
+      toastEl.className = "kiosk-toast variant";
+      document.body.appendChild(toastEl);
+    }
+    toastEl.textContent = text;
+    toastEl.classList.remove("fade");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toastEl.classList.add("fade"), 950);
+  }
+
+  function setup() {
+    const onScene = !!document.getElementById("scene");
+    if (onScene) {
+      document.body.classList.add("chrome-hidden");   // rooms start clean
+      const toast = document.createElement("div");
+      toast.className = "kiosk-toast";
+      toast.innerHTML = '<b>&larr; &rarr;</b> rooms &nbsp;·&nbsp; <b>&uarr; &darr;</b> variation &nbsp;·&nbsp; <b>M</b> menu &nbsp;·&nbsp; <b>R</b> rec';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.classList.add("fade"), 3600);
+      setTimeout(() => toast.remove(), 4500);
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if (isTyping() || e.metaKey || e.ctrlKey || e.altKey) return;
+      switch (e.key) {
+        case "ArrowRight": case "PageDown": e.preventDefault(); goRoom(1); break;
+        case "ArrowLeft":  case "PageUp":   e.preventDefault(); goRoom(-1); break;
+        case "ArrowUp":   e.preventDefault(); { const l = variantCycler && variantCycler(-1); if (l) flashVariant(l); } break;
+        case "ArrowDown": e.preventDefault(); { const l = variantCycler && variantCycler(1);  if (l) flashVariant(l); } break;
+        case "m": case "M": e.preventDefault(); document.body.classList.toggle("chrome-hidden"); break;
+        case "Escape": e.preventDefault(); goRoom(-curIdx()); break;   // back to room 01
+      }
+    });
+  }
+  if (document.readyState !== "loading") setup();
+  else window.addEventListener("DOMContentLoaded", setup);
+})();

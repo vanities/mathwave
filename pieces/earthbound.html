@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EarthBound Backgrounds 幻覚 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="EarthBound / MOTHER 2 style battle backgrounds — HDMA sine-row distortion and palette cycling, two layers, extremely weird. Record straight to video for your RPG." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">distorting reality</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">EarthBound <em>Backgrounds</em></div>
+      <div class="s">06 · 幻覚 HDMA distortion</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>幻覚 · battle bg</h3>
+
+    <div class="field">
+      <label>preset</label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+
+    <div class="field">
+      <label for="speed">cycle speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
+    </div>
+
+    <div class="field">
+      <label for="amp">distortion <span class="val" data-val="amp"></span></label>
+      <input type="range" id="amp" min="0" max="1.5" step="0.02" value="0.5" />
+    </div>
+
+    <div class="field">
+      <label for="freq">frequency <span class="val" data-val="freq"></span></label>
+      <input type="range" id="freq" min="2" max="24" step="1" value="8" />
+    </div>
+
+    <div class="field btnrow">
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="palette">palette: vapor</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="presetname">onett</b></div>
+    <div>↑↓ presets</div>
+  </div>
+
+  <div class="hint">↑↓ <b>preset</b> · drag sliders for <b>distortion</b> · press <b>R</b> to record for your RPG</div>
+
+  <script type="module" src="../src/earthbound.js"></script>
+</body>
+</html>

@@ -72,7 +72,7 @@ body {
 }
 
 /* ============================================================
-   THE SCAPE — sun + neon grid backdrop  (class .paper, no markup change)
+   THE SCAPE — sun + neon grid backdrop  (class .paper)
    sun = ::before, grid floor = ::after
    ============================================================ */
 .paper {
@@ -81,7 +81,6 @@ body {
     radial-gradient(140% 90% at 50% 8%, #2a0f52 0%, var(--bg-2) 38%, var(--bg) 78%),
     var(--bg);
 }
-/* faint star dust */
 .paper > i { display: none; }
 .paper::before {              /* the sliced retro sun */
   content: "";
@@ -90,7 +89,6 @@ body {
   width: min(52vmin, 520px); height: min(52vmin, 520px);
   border-radius: 50%;
   background-image:
-    /* slices: transparent gaps widen toward the bottom */
     linear-gradient(to bottom,
       transparent 0 53%, var(--bg-2) 53% 55%,
       transparent 55% 63%, var(--bg-2) 63% 65.5%,
@@ -406,6 +404,63 @@ input[type="text"].invalid { border-color: var(--accent); color: #ff9ecb; }
   text-shadow: var(--glow-cyan); transition: opacity .6s;
 }
 .veil.gone { opacity: 0; pointer-events: none; }
+
+/* ---------- record pill (top center, injected by common.js) ---------- */
+.rec {
+  position: fixed; z-index: 7; top: clamp(1rem, 2.5vw, 1.6rem); left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  font-family: var(--mono); font-size: 0.95rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--muted); background: rgba(20,6,43,.72); border: 1px solid var(--line);
+  padding: 0.42rem 0.85rem; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  cursor: pointer; transition: opacity .28s, color .18s, border-color .18s, box-shadow .18s;
+}
+.rec:hover { color: var(--text); border-color: var(--accent-2); }
+.rec .rec-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); }
+.rec .rec-label { min-width: 3.2em; text-align: left; }
+.rec.on { color: var(--accent); border-color: var(--accent); box-shadow: var(--glow-pink); }
+.rec.on .rec-dot { background: var(--accent); box-shadow: var(--glow-pink); animation: recblink 1s steps(2) infinite; }
+@keyframes recblink { 50% { opacity: 0.18; } }
+
+/* ============================================================
+   KIOSK MODE — chrome hidden until M; arrow keys walk rooms
+   ============================================================ */
+.panel, .hud, .readout, .hint, .rec-wrap { transition: opacity .28s ease, transform .28s ease; }
+body.chrome-hidden .panel,
+body.chrome-hidden .hud,
+body.chrome-hidden .readout,
+body.chrome-hidden .hint,
+body.chrome-hidden .rec-wrap { opacity: 0; pointer-events: none; }
+body.chrome-hidden .panel { transform: translateY(10px); }
+body.chrome-hidden .hud-top { transform: translateY(-8px); }
+/* canvas.captureStream() does NOT capture DOM, so showing the REC pill
+   while recording gives feedback without polluting the saved video */
+body.chrome-hidden.recording .rec-wrap { opacity: 1; pointer-events: auto; }
+body.chrome-hidden.recording .rec-dur { opacity: 0; }
+
+/* quick crossfade between rooms */
+body { transition: opacity .18s ease; }
+body.warping { opacity: 0; }
+
+/* one-time controls toast on each room */
+.kiosk-toast {
+  position: fixed; z-index: 9; left: 50%; bottom: clamp(1.2rem, 4vw, 2rem);
+  transform: translateX(-50%);
+  font-family: var(--mono); font-size: 1.02rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); background: rgba(15,7,33,.62); border: 1px solid var(--line);
+  padding: 0.6rem 1.05rem; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  pointer-events: none; transition: opacity .85s ease;
+}
+.kiosk-toast b { color: var(--accent-2); }
+.kiosk-toast.fade { opacity: 0; }
+
+/* the ↑/↓ variation flash — centered, bigger, magenta */
+.kiosk-toast.variant {
+  top: 50%; bottom: auto; transform: translate(-50%, -50%);
+  font-size: 1.45rem; letter-spacing: 0.2em; color: var(--accent);
+  border-color: var(--accent-dim); text-shadow: var(--glow-pink);
+  background: rgba(15,7,33,.78);
+}
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {

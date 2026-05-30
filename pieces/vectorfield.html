@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Strange Attractors — Field Notes</title>
-  <meta name="description" content="Lorenz, Aizawa, Thomas — chaotic differential equations drawn as glowing ribbons that trace the geometry of chaos." />
+  <title>3D Vector Field 流れ — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Thousands of particles advected through a 3D vector field — ABC flow, vortex, the Lorenz flow — drawn as neon streaks. 3D calculus made visible." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,51 +22,46 @@
 </head>
 <body class="piece">
   <div class="paper" aria-hidden="true"></div>
-  <div class="veil">integrating chaos</div>
+  <div class="veil">seeding the flow</div>
 
   <canvas id="scene"></canvas>
 
   <div class="hud hud-top">
     <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
     <div class="hud-title">
-      <div class="t">Strange <em>Attractors</em></div>
-      <div class="s">03 · 混沌 chaotic ODEs</div>
+      <div class="t">3D Vector <em>Field</em></div>
+      <div class="s">05 · 流れ particle advection</div>
     </div>
   </div>
 
   <div class="panel">
-    <h3>ẋ = f(x)</h3>
+    <h3>流れ · V(x,y,z)</h3>
 
     <div class="field">
-      <label>system</label>
-      <div class="preset-row" id="systems"></div>
+      <label>field</label>
+      <div class="preset-row" id="fields"></div>
     </div>
 
     <div class="field">
-      <label for="speed">draw / spin speed <span class="val" data-val="speed"></span></label>
+      <label for="speed">flow speed <span class="val" data-val="speed"></span></label>
       <input type="range" id="speed" min="0" max="3" step="0.05" value="1" />
     </div>
 
     <div class="field btnrow">
-      <button class="btn active" id="spin">auto-spin</button>
-      <button class="btn" id="replay">replay</button>
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="respawn">respawn</button>
       <button class="btn" id="reset">reset view</button>
-    </div>
-
-    <div class="field">
-      <label style="margin-bottom:0">about</label>
-      <p class="muted" id="about" style="font-size:0.72rem; line-height:1.5; margin:0.3rem 0 0; letter-spacing:0">—</p>
     </div>
   </div>
 
   <div class="readout">
     <div><b id="fps">–</b> fps</div>
-    <div><b id="pts">–</b> pts</div>
-    <div id="name">lorenz</div>
+    <div><b>9,000</b> particles</div>
+    <div>field <b id="fieldname">abc</b></div>
   </div>
 
-  <div class="hint">drag <b>orbit</b> · scroll <b>zoom</b> · switch the <b>system</b></div>
+  <div class="hint">drag <b>orbit</b> · scroll <b>zoom</b> · switch the <b>field</b> · press <b>R</b> to record</div>
 
-  <script type="module" src="../src/attractor.js"></script>
+  <script type="module" src="../src/vectorfield.js"></script>
 </body>
 </html>

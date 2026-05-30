@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import {
-  makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, ramp, reducedMotion, addGrid, addSun,
+  makeRenderer, onResize, loop, fpsMeter, liftVeil, bindRange, ramp, reducedMotion, addGrid, addSun, setVariantCycler,
 } from "./common.js";
 
 // ---------- grid ----------
@@ -186,6 +186,16 @@ playBtn.addEventListener("click", () => {
 });
 document.getElementById("step").addEventListener("click", () => step());
 document.getElementById("clear").addEventListener("click", () => reseed());
+
+// ↑/↓ cycle the rules
+const _ruleNames = Object.keys(RULES);
+let _variantIdx = 0;
+setVariantCycler((d) => {
+  _variantIdx = (_variantIdx + d + _ruleNames.length) % _ruleNames.length;
+  setRule(_ruleNames[_variantIdx]); reseed();
+  wrap.querySelectorAll(".chip").forEach((c, k) => c.classList.toggle("active", k === _variantIdx));
+  return _ruleNames[_variantIdx];
+});
 
 // ---------- boot ----------
 setRule("5766");
