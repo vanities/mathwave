@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DLA 樹枝 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Diffusion-Limited Aggregation — random walkers stick on contact, growing the fractal dendrites of lightning, frost and coral. Witten & Sander 1981." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">growing dendrites</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">DLA <em>樹枝</em></div>
+      <div class="s">36 · diffusion-limited aggregation</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>樹枝 · walk → stick → branch</h3>
+    <div class="field">
+      <label>seed <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="seeds"></div>
+    </div>
+    <div class="field">
+      <label for="speed">growth speed <span class="val" data-val="speed"></span></label>
+      <input type="range" id="speed" min="50" max="1500" step="50" value="400" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Walkers hit the <b>tips</b> first, so the cluster grows feathery branches — the same fractal as lightning, frost and coral (dimension ≈ 2.5 in 3D).
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="cnt">1</b> stuck</div>
+    <div>↑↓ seed</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>seed</b> (point/line/plane) · watch it branch · press <b>R</b></div>
+  <script type="module" src="../src/dla.js"></script>
+</body>
+</html>
