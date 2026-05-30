@@ -179,6 +179,7 @@ const ROOMS = [
   "attractorsong.html", "gpuflow.html", "machineelves.html",
   "mandelbox.html", "menger.html", "nebula.html", "metaballs.html",
   "wavefunction.html", "lbm.html", "sandpile.html", "ripple.html", "cloth.html",
+  "lsystem.html", "hyperbolic.html", "apollonian.html", "qjulia.html", "primes.html",
 ];
 
 // ============================================================

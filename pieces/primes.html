@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Primes 素数 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The Sacks/Ulam prime spiral and the nontrivial zeros of the Riemann zeta function — primes light up the spiral; |ζ(½+it)| dips to zero at each zero." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">sieving primes</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Prime <em>Spiral</em> &amp; ζ</div>
+      <div class="s">素数 · primes ↔ Riemann zeros</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>素数 · Sacks / Ulam / ζ</h3>
+    <div class="field">
+      <label>mode <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="modes"></div>
+    </div>
+    <div class="field">
+      <label for="count"><span data-label="count">count N</span> <span class="val" data-val="count"></span></label>
+      <input type="range" id="count" min="5000" max="100000" step="1000" value="30000" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="primecount">–</b> <span id="primelabel">primes</span></div>
+    <div>↑↓ mode</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>mode</b> · <b>count</b> grows the spiral · ζ dips to <b>0</b> at each zero · press <b>R</b></div>
+
+  <!-- error trap (required) -->
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+
+  <script type="module" src="../src/primes.js"></script>
+</body>
+</html>

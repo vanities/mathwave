@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L-System 樹形 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Lindenmayer systems — fractal plants that grow by parallel string rewriting, drawn by a 3D turtle. Bush, tree, seaweed, Sierpinski; depth-colored, animated growth." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">growing the plant</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">L-System <em>樹形</em></div>
+      <div class="s">grammar → 3D turtle → growth</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>樹形 · rewrite &amp; grow</h3>
+    <div class="field">
+      <label>species <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="species"></div>
+    </div>
+    <div class="field">
+      <label for="iters">iterations (depth) <span class="val" data-val="iters"></span></label>
+      <input type="range" id="iters" min="1" max="6" step="1" value="4" />
+    </div>
+    <div class="field">
+      <label for="angle">branch angle <span class="val" data-val="angle"></span></label>
+      <input type="range" id="angle" min="0.3" max="2" step="0.05" value="1" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="regrow">regrow</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.86rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        An axiom string is rewritten by rules, then a 3D turtle walks it — <b>F</b> draws, <b>+−&amp;^\/</b> turn, <b>[ ]</b> branch.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="segs">0</b> segments · <b id="species-name">bush</b></div>
+    <div>↑↓ species</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>species</b> · slide <b>depth</b> · <b>regrow</b> to replay · press <b>R</b> to record</div>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+  <script type="module" src="../src/lsystem.js"></script>
+</body>
+</html>
