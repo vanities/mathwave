@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nebula — Field Notes</title>
+  <meta name="description" content="A domain-warped FBM nebula: volumetric noise clouds raymarched on the GPU, glowing in 3D depth." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
+    }
+  }
+  </script>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="veil">compiling shader</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t"><em>Nebula</em></div>
+      <div class="s">43 · 星雲 domain-warped FBM volume</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>q = fbm(p + fbm(p + fbm(p + t)))</h3>
+
+    <div class="field">
+      <label for="density">cloud density <span class="val" data-val="density"></span></label>
+      <input type="range" id="density" min="0.4" max="3" step="0.05" value="1.4" />
+    </div>
+
+    <div class="field">
+      <label for="warp">domain warp <span class="val" data-val="warp"></span></label>
+      <input type="range" id="warp" min="0" max="2" step="0.05" value="1" />
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+  </div>
+
+  <div class="hint">drag is off here · <b>↑ ↓</b> presets · sliders tune <b>density</b> + <b>warp</b></div>
+
+  <script type="module" src="../src/nebula.js?v=fix2"></script>
+</body>
+</html>

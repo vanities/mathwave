@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Menger Sponge — Field Notes</title>
+  <meta name="description" content="A Menger sponge fractal raymarched entirely on the GPU by a fragment shader — holes within holes within holes. Orbit and dive in." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.169.0/build/three.module.js"
+    }
+  }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">compiling shader</div>
+
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="fractal.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">The <em>Menger Sponge</em></div>
+      <div class="s">42 · 海綿 raymarched SDF</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>d = max(d, cross/s)</h3>
+
+    <div class="field">
+      <label for="iter">fractal iterations <span class="val" data-val="iter"></span></label>
+      <input type="range" id="iter" min="1" max="7" step="1" value="5" />
+    </div>
+
+    <div class="field">
+      <label for="steps">march detail <span class="val" data-val="steps"></span></label>
+      <input type="range" id="steps" min="40" max="200" step="5" value="120" />
+    </div>
+
+    <div class="field btnrow">
+      <button class="btn" id="zoom">auto-dive</button>
+      <button class="btn active" id="spin">auto-spin</button>
+      <button class="btn" id="reset">reset view</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div>iters <b id="it">5</b></div>
+    <div>dist <b id="dist">3.00</b></div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · scroll <b>zoom</b> · try <b>auto-dive</b></div>
+
+  <script type="module" src="../src/menger.js?v=ps1"></script>
+</body>
+</html>

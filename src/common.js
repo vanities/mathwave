@@ -177,6 +177,7 @@ const ROOMS = [
   "chladni.html", "kuramoto.html", "newton.html", "mandelbrot.html",
   "blackhole.html", "phyllotaxis.html", "dla.html",
   "attractorsong.html", "gpuflow.html", "machineelves.html",
+  "mandelbox.html", "menger.html", "nebula.html", "metaballs.html",
 ];
 
 // ============================================================
