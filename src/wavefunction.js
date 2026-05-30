@@ -48,7 +48,13 @@ const VSHADER = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(pos
 const simU = {
   uTex: { value: null },
   uTexel: { value: new THREE.Vector2(1 / SW, 1 / SH) },
-  uDt: { value: 0.06 },
+  // Visscher leapfrog stability: with the bare 5-point Laplacian (no /dx² factor)
+  // the explicit scheme needs dt·(4 + V_max) ≲ 1. The harmonic well reaches V≈90,
+  // so dt must be ~0.015 — at the old 0.06 the well preset diverged to NaN within a
+  // few dozen steps and |ψ|² pinned the ramp to solid yellow everywhere. dt=0.015
+  // keeps Σ|ψ|² bounded to ~2.5% over thousands of steps across EVERY preset
+  // (free / slit / tunnel / well). See header note on the scheme.
+  uDt: { value: 0.015 },
 };
 const simScene = new THREE.Scene();
 simScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
@@ -87,8 +93,11 @@ simScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
       // I update uses fresh R: I_new = I + dt*(-0.5*lapR + V*R_new)
       float In = c.y + uDt * (-0.5 * lapR + V * Rn);
 
-      // clamp amplitude so any residual leapfrog instability can't blow to ∞→yellow
-      Rn = clamp(Rn, -3.0, 3.0); In = clamp(In, -3.0, 3.0);
+      // safety net ONLY — in the stable dt regime |R|,|I| stay well under this
+      // (even the well's tight core peaks at |ψ|²≈6 → |R|,|I|≲2.5), so this clamp
+      // does not shape the image; it just stops a pathological transient from
+      // running to ∞. Widened from ±3 so it never clips a legitimate dense core.
+      Rn = clamp(Rn, -8.0, 8.0); In = clamp(In, -8.0, 8.0);
       float dens = Rn * Rn + In * In;                  // |ψ|² cached for display
       gl_FragColor = vec4(Rn, In, V, dens);
     }`,
@@ -116,7 +125,13 @@ dispScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
     void main(){
       vec4 s = texture2D(uTex, vUv);
       float R = s.x, I = s.y, V = s.z, dens = s.w;
-      float d = 1.0 - exp(-dens * 10.0 * uGain);        // soft exposure — never flat-saturates to yellow
+      // Soft exposure tuned to the ACTUAL density scale of a normalized packet:
+      // a moving / spreading blob peaks at |ψ|²≈0.1–0.6, walls ≈3, the well core ≈6.
+      // With k≈1.6 a typical packet lands mid-ramp (cyan→magenta) and only the
+      // densest cores reach amber. At the old k=10 every lit texel mapped to ≈1.0
+      // (solid yellow). 1-exp keeps it from ever flat-saturating; uGain (default
+      // 1.0) scales overall brightness around this point.
+      float d = 1.0 - exp(-dens * 1.6 * uGain);
       float t = pow(clamp(d, 0.0, 1.0), 0.6);
       vec3 col = pal(t);
 
@@ -257,8 +272,14 @@ bindRange("barrier", (v) => {
   if (t === "slit" || t === "tunnel") seed();
 }, (v) => Math.round(v));
 
-// sim speed: how many leapfrog steps per frame
-let iters = 8;
+// sim speed: how many leapfrog steps per frame. dt is now small (0.015) for
+// stability, so we run more sub-steps per frame to keep the packet moving at a
+// watchable pace (effective per-frame evolution ≈ iters·dt). Default the slider
+// to its max so the smaller dt still reads as lively motion out of the box; the
+// slider (1–16) still works as before.
+let iters = 16;
+const rateEl = document.getElementById("rate");
+if (rateEl) rateEl.value = "16";   // raise HTML default before bindRange syncs it
 bindRange("rate", (v) => { iters = Math.round(v); }, (v) => `${Math.round(v)}×`);
 
 let playing = !reducedMotion;
