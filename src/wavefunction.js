@@ -131,15 +131,15 @@ dispScene.add(new THREE.Mesh(quad, new THREE.ShaderMaterial({
       // densest cores reach amber. At the old k=10 every lit texel mapped to ≈1.0
       // (solid yellow). 1-exp keeps it from ever flat-saturating; uGain (default
       // 1.0) scales overall brightness around this point.
-      float d = 1.0 - exp(-dens * 1.6 * uGain);
-      float t = pow(clamp(d, 0.0, 1.0), 0.6);
+      float d = 1.0 - exp(-dens * 6.0 * uGain);
+      float t = pow(clamp(d, 0.0, 1.0), 0.5);
       vec3 col = pal(t);
 
       // faint phase tint (hue wobble from arg(ψ)), only where there's amplitude
       float ph = atan(I, R);
       col += 0.10 * d * vec3(cos(ph), cos(ph + 2.094), cos(ph + 4.188));
 
-      col *= 0.30 + 1.15 * d;                            // glow with density
+      col *= 0.55 + 1.3 * d;                             // glow with density
 
       // ghost the potential walls so barriers/wells are visible on the dark field
       float wall = clamp(V * 0.10, 0.0, 1.0);
