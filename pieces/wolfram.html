@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wolfram CA 規則 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Elementary cellular automata — Wolfram's 256 rules. Rule 90 makes Sierpiński, rule 30 is chaos, rule 110 is Turing-complete." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">applying the rule</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Wolfram <em>CA</em></div>
+      <div class="s">28 · 規則 256 elementary rules</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>規則 · 3 bits → 1 bit</h3>
+    <div class="field">
+      <label>rule <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="rules"></div>
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="seed">seed: single</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Each cell's next state depends on itself + 2 neighbors. <b>Rule 30</b> = chaos (a PRNG), <b>90</b> = Sierpiński, <b>110</b> = Turing-complete.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="rulename">rule 110</b></div>
+    <div>↑↓ rule</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>rule</b> · try <b>random</b> seed on 110 · press <b>R</b></div>
+  <script type="module" src="../src/wolfram.js"></script>
+</body>
+</html>

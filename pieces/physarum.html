@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Physarum 粘菌 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Physarum slime mold — agents sense, rotate, deposit and follow a decaying trail field, self-organizing into vein-like transport networks. Jeff Jones 2010." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">growing the colony</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Physarum <em>粘菌</em></div>
+      <div class="s">29 · slime-mold networks</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>粘菌 · sense → rotate → deposit</h3>
+    <div class="field">
+      <label>spawn <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="seeds"></div>
+    </div>
+    <div class="field">
+      <label for="sensor">sensor angle <span class="val" data-val="sensor"></span></label>
+      <input type="range" id="sensor" min="0.1" max="1.2" step="0.02" value="0.4" />
+    </div>
+    <div class="field">
+      <label for="turn">turn angle <span class="val" data-val="turn"></span></label>
+      <input type="range" id="turn" min="0.1" max="1.2" step="0.02" value="0.5" />
+    </div>
+    <div class="field">
+      <label for="decay">trail decay <span class="val" data-val="decay"></span></label>
+      <input type="range" id="decay" min="0.9" max="0.99" step="0.005" value="0.96" />
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b>200k</b> agents</div>
+    <div>↑↓ spawn</div>
+  </div>
+
+  <div class="hint">↑↓ <b>spawn</b> · tune <b>sensor/turn/decay</b> · networks emerge · press <b>R</b> to record</div>
+  <script type="module" src="../src/physarum.js"></script>
+</body>
+</html>
