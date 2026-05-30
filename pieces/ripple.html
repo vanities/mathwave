@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ripple Tank 波紋 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="A ripple tank — the 2D wave equation on a GPU grid. Two oscillating sources throw out circular wavefronts that interfere; a slit barrier diffracts them." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="veil">filling the tank</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Ripple <em>Tank</em></div>
+      <div class="s">46 · 波紋 wave equation · interference</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>波紋 · uₜₜ = c²∇²u</h3>
+    <div class="field">
+      <label>setup <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="freq">frequency <span class="val" data-val="freq"></span></label>
+      <input type="range" id="freq" min="0.6" max="4" step="0.1" value="2.0" />
+    </div>
+    <div class="field">
+      <label for="sep">source separation <span class="val" data-val="sep"></span></label>
+      <input type="range" id="sep" min="0.05" max="0.6" step="0.01" value="0.36" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="play">pause</button>
+      <button class="btn" id="reset">re-drop</button>
+    </div>
+    <div class="field">
+      <p class="muted" style="font-size:0.84rem; line-height:1.5; margin:0.2rem 0 0; letter-spacing:0">
+        Crest-meets-crest builds bright <b>antinodal</b> lines; crest-meets-trough cancels to still <b>nodal</b> lines. A barrier with gaps re-radiates each slit → <b>diffraction</b>.
+      </p>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="presetname">two sources</b></div>
+    <div>↑↓ setup · click to move a source</div>
+  </div>
+
+  <div class="hint">↑↓ <b>setup</b> · <b>click</b> the tank to move a source · <b>re-drop</b> to still it · press <b>R</b> to record</div>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+  <script type="module" src="../src/ripple.js"></script>
+</body>
+</html>

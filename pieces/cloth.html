@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cloth 布 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Mass-spring cloth simulated with Verlet integration and constraint relaxation — a flag, a hanging banner, a drape over a sphere, free fall. Billowing in time-varying wind." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">weaving cloth</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t"><em>Cloth</em></div>
+      <div class="s">44 · 布 mass-spring · Verlet</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>布 · verlet + constraints</h3>
+    <div class="field">
+      <label>shape <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets"></div>
+    </div>
+    <div class="field">
+      <label for="wind">wind <span class="val" data-val="wind"></span></label>
+      <input type="range" id="wind" min="0" max="3" step="0.05" value="1" />
+    </div>
+    <div class="field">
+      <label for="stiff">stiffness <span class="val" data-val="stiff"></span></label>
+      <input type="range" id="stiff" min="1" max="10" step="1" value="4" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="release">release pins</button>
+      <button class="btn" id="reset">reset</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="pn">flag</b></div>
+    <div>↑↓ shape</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · ↑↓ <b>shape</b> · try <b>drape on sphere</b> · <b>release pins</b> to drop · press <b>R</b> to record</div>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+  <script type="module" src="../src/cloth.js"></script>
+</body>
+</html>
