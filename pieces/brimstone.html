@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Brimstone 硫黄 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="Sodom & Gomorrah — ballistic fire and brimstone rains from a hellish sky onto a city, which burns building by building to blackened ash, then rebuilds." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+</head>
+<body class="piece">
+  <div class="paper" aria-hidden="true"></div>
+  <div class="veil">calling down fire</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t"><em>Brimstone</em></div>
+      <div class="s">硫黄 · Sodom &amp; Gomorrah · rain of fire</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>硫黄 · ballistic judgment</h3>
+    <div class="field">
+      <label>preset <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="presets">the judgment · firestorm · the ruin · rain of fire</div>
+    </div>
+    <div class="field">
+      <label for="rain">rain rate <span class="val" data-val="rain"></span></label>
+      <input type="range" id="rain" min="0.2" max="3" step="0.1" value="1" />
+    </div>
+    <div class="field">
+      <label for="city">city size <span class="val" data-val="city"></span></label>
+      <input type="range" id="city" min="200" max="1600" step="50" value="900" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn" id="reset">reset</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="pct">0</b>% razed</div>
+    <div><b id="imp">0</b> impacts</div>
+    <div>↑↓ preset</div>
+  </div>
+
+  <div class="hint">drag <b>orbit</b> · scroll <b>zoom</b> · ↑↓ <b>preset</b> · <b>R</b> rec</div>
+
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+  <script type="module" src="../src/brimstone.js"></script>
+</body>
+</html>

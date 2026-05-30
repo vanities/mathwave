@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ten Plagues 災厄 — ＭＡＴＨＷＡＶＥ</title>
+  <meta name="description" content="The Ten Plagues of Egypt as a cycling showcase of real simulations — Gray-Scott blood, boids locusts, ballistic frogs, falling hail & fire, value-noise darkness, and a Passover of dying lamps." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Monoton&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/base.css" />
+  <script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }
+  </script>
+  <script>window.__err=null;addEventListener("error",e=>{window.__err=String((e&&e.message)||e.error||e)})</script>
+</head>
+<body class="piece">
+  <div class="veil">visiting egypt</div>
+  <canvas id="scene"></canvas>
+
+  <div class="hud hud-top">
+    <a class="hud-back" href="parametric.html"><span aria-hidden="true">←</span> 数学波</a>
+    <div class="hud-title">
+      <div class="t">Ten <em>Plagues</em></div>
+      <div class="s">災厄 · <span id="pjp">血</span> <span id="pname">Water to Blood</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>災厄 · ten plagues</h3>
+    <div class="field">
+      <label>plague <span class="muted" style="letter-spacing:0">↑↓</span></label>
+      <div class="preset-row" id="plaguelist"></div>
+    </div>
+    <div class="field">
+      <label for="intensity">intensity <span class="val" data-val="intensity"></span></label>
+      <input type="range" id="intensity" min="0" max="1" step="0.01" value="0.5" />
+    </div>
+    <div class="field btnrow">
+      <button class="btn active" id="autobtn">auto ◉</button>
+      <button class="btn" id="reset">reset</button>
+    </div>
+  </div>
+
+  <div class="readout">
+    <div><b id="fps">–</b> fps</div>
+    <div><b id="pidx">1/6</b> · <b id="preadout">Water to Blood</b></div>
+    <div>↑↓ plague</div>
+  </div>
+
+  <div class="hint">↑↓ <b>plague</b> · auto-advances every 10s · <b>reset</b> for a fresh visitation · press <b>R</b></div>
+
+  <script type="module" src="../src/plagues.js"></script>
+</body>
+</html>

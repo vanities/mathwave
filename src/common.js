@@ -183,6 +183,7 @@ const ROOMS = [
   "nca.html", "som.html", "spiking.html", "hopfield.html", "rl.html",
   "hillclimb.html", "minimax.html", "genetic.html", "antcolony.html", "astar.html",
   "magnetosphere.html", "flood.html",
+  "babel.html", "plagues.html", "redsea.html", "brimstone.html",
 ];
 
 // ============================================================
