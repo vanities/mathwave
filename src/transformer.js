@@ -84,21 +84,30 @@ function initWeights() {
   WO = mat(Dm, Dm, r, 1 / Math.sqrt(Dm)); W1 = mat(Dm, Dm * 2, r, 1 / Math.sqrt(Dm)); W2 = mat(Dm * 2, Dm, r, 1 / Math.sqrt(Dm * 2)); WU = mat(T, Dm, r, 1 / Math.sqrt(Dm));
 }
 function softmaxCausal(s, i) { let mx = -1e9; for (let j = 0; j <= i; j++) mx = Math.max(mx, s[j]); let sm = 0; const o = new Array(s.length).fill(0); for (let j = 0; j <= i; j++) { o[j] = Math.exp(s[j] - mx); sm += o[j]; } for (let j = 0; j <= i; j++) o[j] /= sm; return o; }
+// LayerNorm (per token row): without it the residual stream grows every layer,
+// so Q·K explodes → softmax saturates → only layer 0 shows varied attention.
+// Real GPT is pre-LN, so this is both the fix and the accurate thing.
+const layerNorm = (X) => X.map((row) => {
+  let m = 0; for (const v of row) m += v; m /= row.length;
+  let s = 0; for (const v of row) s += (v - m) * (v - m); s = Math.sqrt(s / row.length + 1e-5);
+  return row.map((v) => (v - m) / s);
+});
 let embed, attnByLayer, hiddenByLayer, refusal;
 function forward() {
   attnByLayer = []; hiddenByLayer = [];
   let x = addM(WE, PE); embed = x.map((r) => r.slice());
   for (let L = 0; L < LAYERS; L++) {
+    const xn = layerNorm(x);                       // pre-attention norm
     const heads = [], headOuts = [];
     for (let h = 0; h < HEADS; h++) {
-      const Q = matmul(x, WQ[h]), K = matmul(x, WK[h]), V = matmul(x, WV[h]);
+      const Q = matmul(xn, WQ[h]), K = matmul(xn, WK[h]), V = matmul(xn, WV[h]);
       const A = [];
       for (let i = 0; i < T; i++) { const s = new Array(T).fill(-1e9); for (let j = 0; j <= i; j++) { let d = 0; for (let p = 0; p < DK; p++) d += Q[i][p] * K[j][p]; s[j] = d / Math.sqrt(DK); } A.push(softmaxCausal(s, i)); }
       heads.push(A);
       headOuts.push(A.map((ar) => { const o = new Array(DK).fill(0); for (let j = 0; j < T; j++) for (let p = 0; p < DK; p++) o[p] += ar[j] * V[j][p]; return o; }));
     }
     x = addM(x, matmul(concatCols(headOuts), WO));
-    x = addM(x, matmul(relu(matmul(x, W1)), W2));
+    x = addM(x, matmul(relu(matmul(layerNorm(x), W1)), W2));   // pre-FFN norm
     attnByLayer.push(heads); hiddenByLayer.push(x.map((r) => r.slice()));
   }
   const mean = new Array(Dm).fill(0);
@@ -272,7 +281,12 @@ liftVeil();
 onResize(renderer, camera);
 const meter = fpsMeter(document.getElementById("fps"));
 const layerEl = document.getElementById("layer");
-window.__diag = () => JSON.stringify({ T, HEADS, LAYERS, DK, Dm, curLayer, cubes: cubeCount, attnEdges, attnRowSum: attnByLayer[0][0][T - 1].reduce((a, b) => a + b, 0).toFixed(3) });
+window.__diag = () => {
+  // edges per layer (proves attention is spread across ALL gaps, not just the first)
+  const per = [];
+  for (let L = 0; L < LAYERS; L++) { let e = 0; const A = attnByLayer[L][activeHead]; for (let i = 0; i < T; i++) for (let j = 0; j <= i; j++) if (A[i][j] >= 0.05) e++; per.push(e); }
+  return JSON.stringify({ T, HEADS, LAYERS, DK, Dm, curLayer, cubes: cubeCount, attnEdges, edgesPerLayer: per, attnRowSum: attnByLayer[0][0][T - 1].reduce((a, b) => a + b, 0).toFixed(3) });
+};
 
 let clock = 0;
 loop((dt) => {
